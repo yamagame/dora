@@ -9,21 +9,21 @@ module.exports = function(DRAGO, config) {
   function QuizEntry(node, options) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
-      await node.flow.engine.request('command', {
+      await node.flow.request('command', {
         restype: 'text',
       }, {
         type: 'quiz',
         action: 'wait',
         pages: [],
       });
-      await node.flow.engine.request('command', {
+      await node.flow.request('command', {
         restype: 'text',
       }, {
         type: 'quiz',
         action: 'quiz-entry-init',
         name: "_quiz_master_",
       });
-      await node.flow.engine.request('command', {
+      await node.flow.request('command', {
         restype: 'text',
       }, {
         type: 'quiz',
@@ -61,7 +61,7 @@ module.exports = function(DRAGO, config) {
   function QuizSlide(node, options) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
-      await node.flow.engine.request({
+      await node.flow.request({
         type: 'quiz',
         action: 'slide',
         photo: `${options}`,
@@ -107,7 +107,7 @@ module.exports = function(DRAGO, config) {
   function QuizShuffle(node, options) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
-      await node.flow.engine.request({
+      await node.flow.request({
         type: 'quiz',
         action: 'quiz-shuffle',
       });
@@ -181,7 +181,7 @@ module.exports = function(DRAGO, config) {
   function QuizOpen(node, options) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
-      const payload = await node.flow.engine.request({
+      const payload = await node.flow.request({
         type: 'quiz',
         action: 'quiz-init',
         time: msg.quiz.timeLimit,
@@ -228,7 +228,7 @@ module.exports = function(DRAGO, config) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
       await utils.timeout(1000);
-      await node.flow.engine.request({
+      await node.flow.request({
         type: 'quiz',
         action: 'quiz-start',
         time: msg.quiz.timeLimit-msg.quiz.timer,
@@ -287,7 +287,7 @@ module.exports = function(DRAGO, config) {
   function QuizStop(node, options) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
-      await node.flow.engine.request({
+      await node.flow.request({
         type: 'quiz',
         action: 'quiz-stop',
       });
@@ -305,28 +305,28 @@ module.exports = function(DRAGO, config) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
       const { pages } = msg.quiz;
       for (var i=0;i<pages.length-1;i++) {
-        await node.flow.engine.request('command', {
+        await node.flow.request('command', {
           restype: 'text',
         }, {
           type: 'quiz',
           action: 'quiz-answer',
           pageNumber: i,
         });
-        await node.flow.engine.request('text-to-speech', {
+        await node.flow.request('text-to-speech', {
           restype: 'text',
         }, {
           message: `${i+1}問目の答えはこれです`,
         });
         await utils.timeout(3000);
       }
-      await node.flow.engine.request('command', {
+      await node.flow.request('command', {
           restype: 'text',
         }, {
         type: 'quiz',
         action: 'quiz-answer',
         pageNumber: pages.length-1,
       });
-      await node.flow.engine.request('text-to-speech', {
+      await node.flow.request('text-to-speech', {
         restype: 'text',
       }, {
         message: `みなさんの成績は、それぞれ、こんな感じになりましたよ。`,
@@ -345,7 +345,7 @@ module.exports = function(DRAGO, config) {
     node.nextLabel(options.split('/'))
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
-      const quizAnswers = await node.flow.engine.request({
+      const quizAnswers = await node.flow.request({
         type: 'quiz',
         action: 'quiz-ranking',
         name: '_quiz_master_',
@@ -486,7 +486,7 @@ module.exports = function(DRAGO, config) {
   function QuizMessage(node, options) {
     node.on("input", async function(msg) {
       initMessage(msg);
-      await node.flow.engine.request({
+      await node.flow.request({
         type: 'quiz',
         action: 'message',
         title: msg.quiz.message.title,

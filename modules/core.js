@@ -231,7 +231,7 @@ module.exports = function(DRAGO, config) {
    */
   function Sound(node, options) {
     node.on("input", async function(msg) {
-      await node.flow.engine.request({
+      await node.flow.request({
         type: 'sound',
         sound: options,
       });
