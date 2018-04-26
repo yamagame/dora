@@ -258,7 +258,7 @@ module.exports = function(DRAGO, config) {
           t = t[f];
         }
       });
-      if (typeof v !== 'undefined' && typeof key !== 'undefined') v[key]= p[1];
+      if (typeof v !== 'undefined' && typeof key !== 'undefined') v[key]= p.slice(1).join('/');
       node.send(msg);
     });
   }
@@ -469,4 +469,49 @@ module.exports = function(DRAGO, config) {
     });
   }
   DRAGO.registerType('eval', CoreEval);
+
+  /*
+   *
+   *
+   */
+  function QuizSelect(node, options) {
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      msg.quiz.pages.push({
+        action: 'quiz',
+        question: options,
+        choices: [],
+        answers: [],
+      });
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('select', QuizSelect);
+
+  /*
+   *
+   *
+   */
+  function QuizOptionOK(node, options) {
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(options);
+      msg.quiz.pages[msg.quiz.pages.length-1].answers.push(options);
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('ok', QuizOptionOK);
+
+  /*
+   *
+   *
+   */
+  function QuizOptionNG(node, options) {
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(options);
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('ng', QuizOptionNG);
 }

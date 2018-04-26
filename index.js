@@ -106,7 +106,7 @@ class Dora {
       }
       if (this.nodes.length > 0) {
         const n = this.nodes[this.nodes.length-1];
-        n.next = node
+        n.nextNode = node
       }
       this.nodes.push(node);
     })
@@ -116,7 +116,7 @@ class Dora {
       node.name = 'end';
       if (this.nodes.length > 0) {
         const n = this.nodes[this.nodes.length-1];
-        n.next = node
+        n.nextNode = node
       }
       this.nodes.push(node);
     }
@@ -150,7 +150,7 @@ class Dora {
       });
     });
     this.nodes.forEach( node => {
-      node.wires.push(node.next);
+      node.wires.push(node.nextNode);
     });
     for (var i=0;i<this.nodes.length;i++) {
       const node = this.nodes[i];

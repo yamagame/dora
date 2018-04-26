@@ -56,11 +56,11 @@ class Flow extends Array {
     return this.running;
   }
 
-  request(command, options, params) {
+  async request(command, options, params) {
     if (this.parentFlow) {
-      this.parentFlow.request(command, options, params);
+      return await this.parentFlow.request(command, options, params);
     } else {
-      this.engine.request(command, options, params);
+      return await this.engine.request(command, options, params);
     }
   }
 }

@@ -6,6 +6,25 @@ module.exports = function(DRAGO, config) {
    *
    *
    */
+  function QuizGreeting(node, options) {
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      var d = new Date();
+      console.log(d.getHours());
+      if (d.getHours()+1 >= 11) {
+        msg.quiz.greeting = 'こんにちは';
+      } else {
+        msg.quiz.greeting = 'おはようございます';
+      }
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('greeting', QuizGreeting);
+
+  /*
+   *
+   *
+   */
   function QuizEntry(node, options) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
@@ -58,9 +77,26 @@ module.exports = function(DRAGO, config) {
    *
    *
    */
+  function QuizSlideURL(node, options) {
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      msg.quiz.slideURL = options;
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('slideURL', QuizSlideURL);
+
+  /*
+   *
+   *
+   */
   function QuizSlide(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
       await node.flow.request({
         type: 'quiz',
         action: 'slide',
@@ -191,6 +227,7 @@ module.exports = function(DRAGO, config) {
       });
       console.log(payload);
       msg.quiz.startTime = payload;
+      msg.quiz.quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
       node.send(msg);
     });
   }
@@ -265,17 +302,10 @@ module.exports = function(DRAGO, config) {
       const { timer, timeLimit } = msg.quiz;
       const n = [];
       if ((waitTime < 0 && timer-timeLimit == waitTime) || (timer == waitTime)) {
-        for (var i=0;i<this.wires.length-1;i++) {
-          n.push(msg);
-        }
-        n.push(null);
+        node.jump(msg);
       } else {
-        for (var i=0;i<this.wires.length-1;i++) {
-          n.push(null);
-        }
-        n.push(msg);
+        node.next(msg);
       }
-      node.send(n);
     });
   }
   DRAGO.registerType('timeCheck', QuizTimeCheck);
@@ -326,12 +356,6 @@ module.exports = function(DRAGO, config) {
         action: 'quiz-answer',
         pageNumber: pages.length-1,
       });
-      await node.flow.request('text-to-speech', {
-        restype: 'text',
-      }, {
-        message: `みなさんの成績は、それぞれ、こんな感じになりましたよ。`,
-      });
-      await utils.timeout(1000);
       node.send(msg);
     });
   }
@@ -431,9 +455,27 @@ module.exports = function(DRAGO, config) {
    *
    *
    */
-  function QuizMessageTitle(node, options) {
+  function QuizMessageOpen(node, options) {
     node.on("input", function(msg) {
       initMessage(msg);
+      msg.quiz.message = {}
+      msg.quiz.message.messages = [];
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('message.open', QuizMessageOpen);
+
+  /*
+   *
+   *
+   */
+  function QuizMessageTitle(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      initMessage(msg);
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
       msg.quiz.message.title = options;
       node.send(msg);
     });
@@ -445,8 +487,12 @@ module.exports = function(DRAGO, config) {
    *
    */
   function QuizMessageContent(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       initMessage(msg);
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
       msg.quiz.message.messages.push(options);
       node.send(msg);
     });
@@ -458,8 +504,12 @@ module.exports = function(DRAGO, config) {
    *
    */
   function QuizMessageUrl(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       initMessage(msg);
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
       msg.quiz.message.url = options;
       node.send(msg);
     });
@@ -471,8 +521,12 @@ module.exports = function(DRAGO, config) {
    *
    */
   function QuizMessageLink(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       initMessage(msg);
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
       msg.quiz.message.link = options;
       node.send(msg);
     });
