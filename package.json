@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "clone": "^1.0.4",
+    "component-emitter": "^1.2.1",
     "mustache": "^2.3.0",
     "socket.io-client": "^2.1.0"
   }

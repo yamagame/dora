@@ -13,6 +13,7 @@ module.exports = function(DRAGO, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
+      console.log(message);
       node.send(msg);
     });
   }

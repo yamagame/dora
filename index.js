@@ -158,6 +158,7 @@ class Dora {
         node.dora = new Dora(this.config);
         const script = await this.load(node.options, loader);
         await node.dora.parse(script, loader);
+        node.dora.flow.parentFlow = this.flow;
       }
     }
   }
@@ -186,12 +187,12 @@ class Dora {
   }
 
   exec(flow, node, msg) {
-    if (flow.running) {
+    if (flow.isRunning()) {
       const { range: {start, end} } = flow.options;
       let exitflag = ((typeof end !== 'undefined' && node.index >= end) || (typeof start !== 'undefined' && node.index < start));
       if (typeof start !== 'undefined' && typeof end === 'undefined') exitflag = false;
       if (exitflag) {
-        if (flow.runnode == 0 || flow.running == false) {
+        if (flow.runnode == 0 || flow.isRunning() == false) {
           flow.stop();
           if (this.callback) this.callback(null, msg);
         }
@@ -241,7 +242,7 @@ class Dora {
   end(flow, node, err, msg) {
     node.down();
     flow.down();
-    if (flow.runnode == 0 || err || flow.running == false) {
+    if (flow.runnode == 0 || err || flow.isRunning() == false) {
       flow.stop();
       delete msg.labels;
       const m = clone(msg);

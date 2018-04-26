@@ -5,6 +5,7 @@ class Flow extends Array {
     this.runnode = 0;
     this.running = false;
     this.execNodes = [];
+    this.parentFlow = null;
   }
 
   run(node, msg) {
@@ -46,6 +47,13 @@ class Flow extends Array {
 
   nextLabel(node, label) {
     return this.engine.nextLabel(node, label);
+  }
+
+  isRunning() {
+    if (this.parentFlow) {
+      return this.parentFlow.isRunning();
+    }
+    return this.running;
   }
 }
 
