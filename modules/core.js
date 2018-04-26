@@ -13,7 +13,6 @@ module.exports = function(DRAGO, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      console.log(message);
       node.send(msg);
     });
   }
@@ -464,7 +463,7 @@ module.exports = function(DRAGO, config) {
   function CoreEval(node, options) {
     node.on("input", function(msg) {
       var script = options;
-      eval(script);
+      //eval(script);
       node.send(msg);
     });
   }
