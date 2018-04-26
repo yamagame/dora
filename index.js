@@ -112,6 +112,8 @@ class Dora {
     })
     {
       const node = new Node(flow);
+      node.line = '/end';
+      node.index = lines.length;
       this.types['end'](node);
       node.name = 'end';
       if (this.nodes.length > 0) {

@@ -450,7 +450,14 @@ module.exports = function(DRAGO, config) {
   function CoreCall(node, options) {
     node.options = options
     node.on("input", function(msg) {
-      node.dora.play(msg, node.flow.options, (err, msg) => {
+      const opt = {}
+      Object.keys(node.flow.options).forEach( key => {
+        opt[key] = node.flow.options[key]; 
+      })
+      opt.range = {
+        start: 0,
+      }
+      node.dora.play(msg, opt, (err, msg) => {
         node.send(msg);
       });
     });
