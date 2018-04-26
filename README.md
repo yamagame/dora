@@ -1,1 +1,5 @@
-# dora
+#Lazy Dora Script
+
+## License
+
+  MIT
