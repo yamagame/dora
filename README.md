@@ -1,4 +1,4 @@
-#Lazy Dora Script
+# Dora Script
 
 ## License
 
