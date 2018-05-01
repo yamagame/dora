@@ -556,4 +556,62 @@ module.exports = function(DRAGO, config) {
     });
   }
   DRAGO.registerType('message', QuizMessage);
+
+  /*
+   *
+   *
+   */
+  function QuizMoviePlay(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      initMessage(msg);
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
+      await node.flow.request({
+        type: 'movie',
+        action: 'play',
+        movie: options,
+      })
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('movie.play', QuizMoviePlay);
+
+  /*
+   *
+   *
+   */
+  function QuizMovieCheck(node, options) {
+    node.nextLabel(options.split('/'))
+    node.on("input", async function(msg) {
+      setTimeout(async () => {
+        const res = await node.flow.request({
+          type: 'movie',
+          action: 'check',
+        })
+        if (res.state === 'play') {
+          node.jump(msg);
+        } else {
+          node.next(msg);
+        }
+      }, 1000);
+    });
+  }
+  DRAGO.registerType('movie.check', QuizMovieCheck);
+
+  /*
+   *
+   *
+   */
+  function QuizMovieCancel(node, options) {
+    node.on("input", async function(msg) {
+      await node.flow.request({
+        type: 'movie',
+        action: 'cancel',
+      })
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('movie.cancel', QuizMovieCancel);
 }
