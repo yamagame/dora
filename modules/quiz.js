@@ -47,11 +47,13 @@ module.exports = function(DRAGO, config) {
       }, {
         type: 'quiz',
         action: 'quiz-entry',
-        title: "このURLをブラウザで開いてください。",
-        messages: [
-            options,
-        ],
+        title: msg.quiz.message.title,
+        messages: msg.quiz.message.messages,
         links: [
+          {
+            title: msg.quiz.message.link,
+            url: msg.quiz.message.url,
+          }
         ],
         name: "_quiz_master_",
       });
