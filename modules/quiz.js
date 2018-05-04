@@ -47,14 +47,14 @@ module.exports = function(DRAGO, config) {
       }, {
         type: 'quiz',
         action: 'quiz-entry',
-        title: msg.quiz.message.title,
-        messages: msg.quiz.message.messages,
-        links: [
+        title: (msg.quiz.message) ? msg.quiz.message.title : null,
+        messages: (msg.quiz.message) ? msg.quiz.message.messages : null,
+        links: (msg.quiz.message) ? [
           {
             title: msg.quiz.message.link,
             url: msg.quiz.message.url,
           }
-        ],
+        ] : null,
         name: "_quiz_master_",
       });
       node.send(msg);
