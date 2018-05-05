@@ -115,11 +115,15 @@ module.exports = function(DRAGO, config) {
    *
    */
   function QuizInit(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
       msg.quiz.timer = 0;
       msg.quiz.pages = [];
-      msg.quiz.quizId = msg.quiz.title;
+      msg.quiz.quizId = (options) ? options : ((msg.quiz.quizId) ? msg.quiz.quizId : msg.quiz.title);
       node.send(msg);
     });
   }
@@ -130,8 +134,15 @@ module.exports = function(DRAGO, config) {
    *
    */
   function QuizId(node, options) {
+    if (!options) {
+      throw new Error('クイズIDが指定されていません。');
+    }
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
       msg.quiz.quizId = options;
       node.send(msg);
     });
@@ -226,6 +237,7 @@ module.exports = function(DRAGO, config) {
         pages: msg.quiz.pages,
         pageNumber: 0,
         quizId: msg.quiz.quizId,
+        showSum: false,
       });
       console.log(payload);
       msg.quiz.startTime = payload;
@@ -234,6 +246,30 @@ module.exports = function(DRAGO, config) {
     });
   }
   DRAGO.registerType('open', QuizOpen);
+
+  /*
+   *
+   *
+   */
+  function QuizYesno(node, options) {
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      const payload = await node.flow.request({
+        type: 'quiz',
+        action: 'quiz-init',
+        time: msg.quiz.timeLimit,
+        pages: msg.quiz.pages,
+        pageNumber: 0,
+        quizId: msg.quiz.quizId,
+        showSum: true,
+      });
+      console.log(payload);
+      msg.quiz.startTime = payload;
+      msg.quiz.quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('yesno', QuizYesno);
 
   /*
    *
@@ -333,31 +369,52 @@ module.exports = function(DRAGO, config) {
    *
    */
   function QuizResult(node, options) {
+    let pageNumber = null;
+    if (options !== null) {
+      pageNumber = parseInt(options);
+    }
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
       const { pages } = msg.quiz;
-      for (var i=0;i<pages.length-1;i++) {
+      if (pageNumber === null) {
+        for (var i=0;i<pages.length-1;i++) {
+          await node.flow.request('command', {
+            restype: 'text',
+          }, {
+            type: 'quiz',
+            action: 'quiz-answer',
+            pageNumber: i,
+          });
+          await node.flow.request('text-to-speech', {
+            restype: 'text',
+          }, {
+            message: `${i+1}問目の答えはこれです`,
+          });
+          await utils.timeout(3000);
+        }
+        await node.flow.request('command', {
+            restype: 'text',
+          }, {
+          type: 'quiz',
+          action: 'quiz-answer',
+          pageNumber: pages.length-1,
+        });
+      } else {
         await node.flow.request('command', {
           restype: 'text',
         }, {
           type: 'quiz',
           action: 'quiz-answer',
-          pageNumber: i,
+          pageNumber,
         });
-        await node.flow.request('text-to-speech', {
-          restype: 'text',
-        }, {
-          message: `${i+1}問目の答えはこれです`,
+        await node.flow.request('command', {
+            restype: 'text',
+          }, {
+          type: 'quiz',
+          action: 'quiz-answer',
+          pageNumber,
         });
-        await utils.timeout(3000);
       }
-      await node.flow.request('command', {
-          restype: 'text',
-        }, {
-        type: 'quiz',
-        action: 'quiz-answer',
-        pageNumber: pages.length-1,
-      });
       node.send(msg);
     });
   }
@@ -441,6 +498,90 @@ module.exports = function(DRAGO, config) {
     });
   }
   DRAGO.registerType('ranking', QuizRanking);
+
+  /*
+   *
+   *
+   */
+  function QuizAnswerCheck(node, options) {
+    const params = options.split('/');
+    let threshold = null;
+    if (params.length > 0) {
+      if (params[0].indexOf(':') == 0) {
+        node.nextLabel(params)
+      } else {
+        threshold = parseInt(params[0]);
+        if (params.length > 1) {
+          node.nextLabel(params.slice(1))
+        }
+      }
+    }
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      const data = await node.flow.request('result', {
+        type: 'answers',
+        quizId: msg.quiz.quizId,
+        startTime: msg.quiz.startTime,
+      });
+
+      console.log(JSON.stringify(data));
+
+      const pages = msg.quiz.pages;
+      const sumQuestions = {};
+      let totalCount = 0;
+      let okCount = 0;
+      pages.forEach( page => {
+        if (page.action === 'quiz') {
+          const r = {}
+          const t = data.answers[page.question];
+          Object.keys(t).forEach(key => {
+            if (typeof r[t[key].answer] === 'undefined') r[t[key].answer] = { count: 0 };
+            r[t[key].answer].count ++;
+            data.question.quiz[page.question].answers.forEach( n => {
+              if (n === t[key].answer) {
+                r[t[key].answer].ok = true;
+              }
+            });
+            if (r[t[key].answer].ok) {
+              okCount ++;
+            }
+            totalCount ++;
+          });
+          sumQuestions[page.question] = r;
+        }
+      });
+
+      const rate = () => {
+        if (totalCount <= 0) {
+          //返事がない
+          return 0;
+        } else
+        if (totalCount === okCount) {
+          //全員OK
+          return 100;
+        } else
+        if (okCount === 0) {
+          //全員NG
+          return 0;
+        } else {
+          return okCount*100/totalCount;
+        }
+      }
+
+      console.log(JSON.stringify(sumQuestions));
+      console.log(`okCount:${okCount} total:${totalCount}`);
+
+      msg.okCount = okCount;
+      msg.totalCount = totalCount;
+
+      if ((threshold !== null && rate() >= threshold) || (threshold === null && rate() > 0)) {
+        node.jump(msg);
+      } else {
+        node.next(msg);
+      }
+    });
+  }
+  DRAGO.registerType('answerCheck', QuizAnswerCheck);
 
   /*
    *
