@@ -202,7 +202,9 @@ class Dora {
       if (exitflag) {
         if (flow.runnode == 0 || flow.isRunning() == false) {
           flow.stop();
-          if (this.callback) this.callback(null, msg);
+          delete msg.labels;
+          const m = clone(msg);
+          if (this.callback) this.callback(null, m);
         }
       } else {
         delete msg.labels;
