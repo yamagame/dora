@@ -124,7 +124,7 @@ module.exports = function(DRAGO, config) {
         this.global()._forks[forkid] = {}
       }
       var forks = this.global()._forks[forkid];
-      var numOutputs = this.wires.length;
+      var numOutputs = this.wires.length-1;
       if (!msg._forks) msg._forks = [];
       msg._forks.push(forkid);
       forks.numWire = numOutputs;
@@ -384,17 +384,10 @@ module.exports = function(DRAGO, config) {
           string = utils.mustache.render(string, msg);
       }
       if (string.trim() == msg.payload.trim()) {
-        for (var i=0;i<this.wires.length-1;i++) {
-          n.push(msg);
-        }
-        n.push(null);
+        node.jump(msg);
       } else {
-        for (var i=0;i<this.wires.length-1;i++) {
-          n.push(null);
-        }
-        n.push(msg);
+        node.next(msg);
       }
-      node.send(n);
     });
   }
   DRAGO.registerType('switch', CoreSwitch);

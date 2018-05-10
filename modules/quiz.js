@@ -523,9 +523,6 @@ module.exports = function(DRAGO, config) {
         quizId: msg.quiz.quizId,
         startTime: msg.quiz.startTime,
       });
-
-      console.log(JSON.stringify(data));
-
       const pages = msg.quiz.pages;
       const sumQuestions = {};
       let totalCount = 0;
