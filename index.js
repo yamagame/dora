@@ -2,6 +2,7 @@ const Flow = require('./libs/flow');
 const Node = require('./libs/node');
 const Core = require('./modules/core');
 const Quiz = require('./modules/quiz');
+const HTTP = require('./modules/http');
 
 const util = require("util");
 const clone = require("clone");
@@ -19,6 +20,8 @@ class Dora {
     Core(this);
     this._modname = 'quiz';
     Quiz(this);
+    this._modname = 'http';
+    HTTP(this);
   }
 
   load(filename, loader) {
@@ -56,6 +59,9 @@ class Dora {
       if (line.indexOf(':') === 0) {
         const m = line.match(/^:(.+)$/);
         const l = m[1].split('/');
+        if (labels[l[0]]) {
+          throw new Error('ラベルが重複しています.');
+        }
         labels[l[0]] = {
           node: node,
           line: index,
