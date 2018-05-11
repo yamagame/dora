@@ -24,7 +24,7 @@
 地球の大気は、太陽からの青いろの光を拡散する性質を持っています。
 ```
 
-スクリプトのサンプルは[こちら](https://github.com/yamagame/https://github.com/yamagame/dora-script-sample)
+スクリプトのサンプルは[こちら](https://github.com/yamagame/https://github.com/yamagame/dora-script-sample)
 
 [https://github.com/yamagame/dora-script-sample](https://github.com/yamagame/dora-script-sample)
 
