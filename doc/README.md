@@ -42,7 +42,7 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
 実行時に{{{payload}}}の部分が入れ替わって「こんにちは、私はダンボール頭のおしゃべりロボットです」とロボットが話します。
 
 
-スクリプトのサンプルは下記URLに置いてます。
+スクリプトのサンプルは下記URLに置いてます。
 
 [https://github.com/yamagame/dora-script-sample](https://github.com/yamagame/dora-script-sample)
 
@@ -85,7 +85,7 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
 
       /log/Hello
 
-  console.log()を使ってログを出力します。
+  console.log()を使ってログを出力します。
 
 - error
 
