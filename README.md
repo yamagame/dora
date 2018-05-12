@@ -2,11 +2,31 @@
 
 [DoraEngine](https://github.com/yamagame/dora-engine)で使用するスクリプトです。
 
+## 準備
+
+```
+$ npm i
+```
+
+## 使い方
+
+別に[DoraEngine](https://github.com/yamagame/dora-engine)を起動させておきます。接続したい[DoraEngine](https://github.com/yamagame/dora-engine)と実行したいスクリプトを下記のように指定して実行します。
+
+```
+$ node index.js [DoraEngineのホスト] [実行したいスクリプト]
+```
+
+例：
+
+```
+$ node index.js http://localhost:3090 ./tests/samples/sample.dora
+```
+
 ## 言語仕様
 
-特殊行以外は、ロボットが読み上げる文章です。空行は1秒のウエイトとして機能します。
+特殊行以外はロボットが読み上げる文章です。空行は1秒のウエイトとして機能します。
 
-下記は、スライドをめくりながら解説をするスクリプトの例です。
+下記はスライドをめくりながら解説をするスクリプトの例です。
 
 ```
 みなさん、こんにちは。

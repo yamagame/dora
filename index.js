@@ -286,3 +286,67 @@ class Dora {
 }
 
 module.exports = Dora;
+
+if (require.main === module) {
+  const host = process.argv[2];
+  const io = require('socket.io-client');
+  const socket = io(host);
+  const fetch = require('node-fetch');
+
+  const fs = require('fs');
+  const data = fs.readFileSync(process.argv[3]);
+  const dora = new Dora();
+
+  //ロボットへのHTTPリクエスト
+  dora.request = async function(command, options, params) {
+    var len = 0;
+    if (typeof command !== 'undefined') len += 1;
+    if (typeof options !== 'undefined') len += 1;
+    if (typeof params !== 'undefined') len += 1;
+    if (len <= 0) {
+      throw new Error('Illegal arguments.');
+    }
+    const opt = {
+      method: 'POST',
+      restype: 'json',
+    }
+    if (len == 1) {
+      params = command;
+      command = 'command';
+    }
+    if (len == 2) {
+      params = options;
+    }
+    if (options) {
+      if (options.method) opt.method = options.method;
+      if (options.restype) opt.restype = options.restype;
+    }
+    const res = await fetch(`${host}/${command}`, {
+      method: opt.method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    const json = await res.json()
+    return json;
+  }
+
+  //スクリプトパース
+  dora.parse(data.toString(), (filename, callback) => {
+    //callコマンドのファイルを読み込む処理
+    fs.readFile(filename, (err, data) => {
+      if (err) throw err;
+      callback(data.toString());
+    });
+  });
+
+  //スクリプト実行
+  dora.play({}, {
+    range: {
+      start: 0,
+    },
+    socket,
+  }, (err, msg) => {
+    console.log(msg);
+    process.exit();
+  });
+}

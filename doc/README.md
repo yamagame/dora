@@ -529,3 +529,57 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /quiz.movie.cancel
 
   動画の再生を停止します。
+
+## カスタムモジュールの追加方法
+
+### カスタムモジュールの例
+
+下記のようにプログラムすると、DoraScriptに任意のコマンドを追加することができます。
+
+```js
+const dora = new Dora();
+
+function CustomModule(DORA, config) {
+    function Hello(node, options) {
+        node.on("input", async function(msg) {
+            msg.payload = 'Hello World';
+            node.send(msg);
+        });
+    }
+    DORA.registerType('hello', Hello);
+}
+
+dora.loadModule('custom', CustomModule, {});
+```
+
+上記、例では次のようなコマンドが使える様になります。
+
+```
+/custom.hello
+```
+
+### オプション文字列の取得方法
+
+コマンド文字列の２つめの/(スラッシュ)以降は、オプション文字列として扱われます。
+
+```
+/custom.hello/こんにちは
+```
+
+オプション文字列はregisterTypeで登録する関数の２つ目の引数で取得できます。下記例では、オプション文字列をmsg.payloadに代入しています。
+
+```js
+const dora = new Dora();
+
+function CustomModule(DORA, config) {
+    function Hello(node, options) {
+        node.on("input", async function(msg) {
+            msg.payload = options;
+            node.send(msg);
+        });
+    }
+    DORA.registerType('hello', Hello);
+}
+
+dora.loadModule('custom', CustomModule, {});
+```
