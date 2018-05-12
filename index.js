@@ -326,8 +326,11 @@ if (require.main === module) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
-    const json = await res.json()
-    return json;
+    if (opt.restype === 'json') {
+      const json = await res.json()
+      return json;
+    }
+    return await res.text();
   }
 
   //スクリプトパース

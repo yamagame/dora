@@ -227,6 +227,46 @@ module.exports = function(DRAGO, config) {
    *
    *
    */
+  function QuizMessagePage(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
+      msg.quiz.pages.push({
+        action: 'message',
+        title: `${options}`,
+      });
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('messagePage', QuizMessagePage);
+
+  /*
+   *
+   *
+   */
+  function QuizSlidePage(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (isTemplated) {
+          options = utils.mustache.render(options, msg);
+      }
+      msg.quiz.pages.push({
+        action: 'slide',
+        photo: `${options}`,
+      });
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('slidePage', QuizSlidePage);
+
+  /*
+   *
+   *
+   */
   function QuizOpen(node, options) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
@@ -377,20 +417,24 @@ module.exports = function(DRAGO, config) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
       const { pages } = msg.quiz;
       if (pageNumber === null) {
+        let num = 0;
         for (var i=0;i<pages.length-1;i++) {
-          await node.flow.request('command', {
-            restype: 'text',
-          }, {
-            type: 'quiz',
-            action: 'quiz-answer',
-            pageNumber: i,
-          });
-          await node.flow.request('text-to-speech', {
-            restype: 'text',
-          }, {
-            message: `${i+1}問目の答えはこれです`,
-          });
-          await utils.timeout(3000);
+          if (pages[i].action === 'quiz') {
+            await node.flow.request('command', {
+              restype: 'text',
+            }, {
+              type: 'quiz',
+              action: 'quiz-answer',
+              pageNumber: i,
+            });
+            await node.flow.request('text-to-speech', {
+              restype: 'text',
+            }, {
+              message: `${num+1}問目の答えはこれです`,
+            });
+            await utils.timeout(3000);
+            num ++;
+          }
         }
         await node.flow.request('command', {
             restype: 'text',
