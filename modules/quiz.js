@@ -237,6 +237,9 @@ module.exports = function(DRAGO, config) {
       msg.quiz.pages.push({
         action: 'message',
         title: `${options}`,
+        messages: [
+          "右上のボタンで次のページへ進んでください。"
+        ],
       });
       node.send(msg);
     });
@@ -729,6 +732,7 @@ module.exports = function(DRAGO, config) {
       await node.flow.request({
         type: 'quiz',
         action: 'message',
+        pages: [],
         title: msg.quiz.message.title,
         messages: msg.quiz.message.messages,
         links: [
