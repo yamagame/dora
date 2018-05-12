@@ -28,6 +28,10 @@
 
 [https://github.com/yamagame/dora-script-sample](https://github.com/yamagame/dora-script-sample)
 
+スクリプトの詳細はdocフォルダを参照してください。
+
+[DoraScript Language Specification](./doc/README.md)
+
 ### コメント
 
 行頭が//だとコメント行になります。

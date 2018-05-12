@@ -143,6 +143,9 @@ module.exports = function(DRAGO, config) {
   function CorePush(node, options) {
     node.on("input", function(msg) {
       if (!msg.stack) msg.stack = [];
+      if (options === null) {
+        options = msg.payload;
+      }
       msg.stack.push(options);
       node.send(msg);
     });
