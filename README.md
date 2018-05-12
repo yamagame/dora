@@ -1,6 +1,6 @@
 # Dora Script
 
-[ドラエンジン](https://github.com/yamagame/dora-engine)で使用するスクリプトです。
+[DoraEngine](https://github.com/yamagame/dora-engine)で使用するスクリプトです。
 
 ## 言語仕様
 
@@ -56,4 +56,4 @@
 
 ## License
 
-  MIT
+[MIT](LICENSE)
