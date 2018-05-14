@@ -224,6 +224,7 @@ class Dora {
         if (flow.runnode == 0 || flow.isRunning() == false) {
           flow.stop();
           delete msg.labels;
+          delete msg._forks;
           const m = clone(msg);
           if (this.callback) this.callback(null, m);
         }
@@ -276,14 +277,16 @@ class Dora {
     if (flow.runnode == 0 || err || flow.isRunning() == false) {
       flow.stop();
       delete msg.labels;
+      delete msg._forks;
       const m = clone(msg);
       if (this.callback) this.callback(err, m);
     }
   }
 
   nextLabel(node, label) {
+    if (typeof label === 'undefined' || label === null) return;
     if (!util.isArray(label)) {
-      label = [label];
+      label = label.split('/');
     }
     var numLabels = label.length;
     for (var i = 0; i < numLabels; i++) {
@@ -363,7 +366,7 @@ if (require.main === module) {
     });
   }).then(()=> {
     //スクリプト実行
-    dora.play({}, {
+    dora.play({ payload: 'Hello' }, {
       range: {
         start: 0,
       },
@@ -378,6 +381,7 @@ if (require.main === module) {
     });
   }).catch((err) => {
     console.error(err);
+    console.error(dora.errorInfo());
     process.exit();
   });;
 }

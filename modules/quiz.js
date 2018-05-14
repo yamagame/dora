@@ -341,7 +341,7 @@ module.exports = function(DRAGO, config) {
   function QuizWait(node, options) {
     const params = (options) ? options.split('/') : [];
     if (params.length > 0) {
-      node.nextLabel(params)
+      node.nextLabel(params.join('/'))
     }
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
@@ -376,7 +376,7 @@ module.exports = function(DRAGO, config) {
     const params = options.split('/');
     const waitTime = parseInt(params[0]);
     if (params.length > 1) {
-       node.nextLabel(params.slice(1))
+       node.nextLabel(params.slice(1).join('/'))
     }
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
@@ -472,7 +472,7 @@ module.exports = function(DRAGO, config) {
    *
    */
   function QuizRanking(node, options) {
-    node.nextLabel(options.split('/'))
+    node.nextLabel(options)
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
       const quizAnswers = await node.flow.request({
@@ -555,11 +555,11 @@ module.exports = function(DRAGO, config) {
     let threshold = null;
     if (params.length > 0) {
       if (params[0].indexOf(':') == 0) {
-        node.nextLabel(params)
+        node.nextLabel(params.join('/'))
       } else {
         threshold = parseInt(params[0]);
         if (params.length > 1) {
-          node.nextLabel(params.slice(1))
+          node.nextLabel(params.slice(1).join('/'))
         }
       }
     }
@@ -773,7 +773,7 @@ module.exports = function(DRAGO, config) {
    *
    */
   function QuizMovieCheck(node, options) {
-    node.nextLabel(options.split('/'))
+    node.nextLabel(options)
     node.on("input", async function(msg) {
       setTimeout(async () => {
         const res = await node.flow.request({

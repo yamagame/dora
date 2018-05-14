@@ -1,4 +1,5 @@
 var Emitter = require('component-emitter');
+const clone = require("clone");
 
 class Node extends Emitter {
   constructor(flow){
@@ -23,6 +24,19 @@ class Node extends Emitter {
 
   err(err) {
     this.flow.err(err);
+  }
+
+  fork(msg) {
+    const w = [];
+    for (var i=0;i<this.wires.length-1;i++) {
+      delete msg.labels;
+      const m = clone(msg);
+      m.topic = this.wires[i].labelName;
+      m.topicPriority = (typeof m.topicPriority !== 'undefined') ? m.topicPriority : 0;
+      w.push(m);
+    }
+    w.push(null);
+    this.send(w);
   }
 
   jump(msg) {

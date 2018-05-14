@@ -54,6 +54,7 @@ module.exports = function(DRAGO, config) {
     const p = options.split('/');
     const name = p[0];
     const args = p.slice(1);
+    node.labelName = name;
     node.on("input", function(msg) {
       if (typeof msg.labels[name] === 'undefined') {
         msg.labels[name] = 0;
@@ -71,7 +72,7 @@ module.exports = function(DRAGO, config) {
   function CoreIf(node, options) {
     const params = options.split('/');
     const form = params[0];
-    node.nextLabel(form.slice(1));
+    node.nextLabel(form.slice(1).join('/'));
     node.on("input", function(msg) {
       if (msg.labels[form].value) {
         node.jump(msg);
@@ -87,7 +88,7 @@ module.exports = function(DRAGO, config) {
    *
    */
   function CoreGoto(node, options) {
-    node.nextLabel(options)
+    node.nextLabel(options);
     node.on("input", function(msg) {
       node.jump(msg);
     });
@@ -122,7 +123,7 @@ module.exports = function(DRAGO, config) {
    *
    */
   function CoreFork(node, options) {
-    node.nextLabel(options.split('/'))
+    node.nextLabel(options);
     node.on("input", function(msg) {
       var forkid = utils.generateId();
       if (!this.global()._forks) {
@@ -139,7 +140,7 @@ module.exports = function(DRAGO, config) {
       forks.priority = 0;
       forks.name = "";
       forks.msg = {};
-      node.jump(msg);
+      node.fork(msg);
     });
   }
   DRAGO.registerType('fork', CoreFork);
@@ -178,6 +179,7 @@ module.exports = function(DRAGO, config) {
    *
    */
   function CoreJoin(node, options) {
+    node.nextLabel(options);
     node.on("input", function(msg) {
       if (msg._forks) {
         const forkid = msg._forks[msg._forks.length-1];
@@ -191,13 +193,23 @@ module.exports = function(DRAGO, config) {
           forks.numWire --;
           if (forks.numWire <= 0) {
             msg._forks.pop();
+            const forkid = msg._forks[msg._forks.length-1];
             if (typeof forks.msg.topic !== 'undefined' && forks.msg.topicPriority !== 0) {
-              node.send(forks.msg);
+              forks.msg._forks = msg._forks;
+              if (node.wires.length > 1) {
+                node.jump(forks.msg);
+              } else {
+                node.next(forks.msg);
+              }
             } else {
               if (msg.topicPriority === 0) {
                 delete msg.topic;
               }
-              node.send(msg);
+              if (node.wires.length > 1) {
+                node.jump(msg);
+              } else {
+                node.next(msg);
+              }
             }
             return;
           }
@@ -217,7 +229,7 @@ module.exports = function(DRAGO, config) {
       if (typeof msg.topicPriority === 'undefined') {
         msg.topicPriority = 0;
       }
-      msg.topicPriority = msg.topicPriority + parseInt(options);
+      msg.topicPriority = msg.topicPriority + ((options === null) ? 10 : parseInt(options));
       node.send(msg);
     });
   }
@@ -327,7 +339,7 @@ module.exports = function(DRAGO, config) {
    *
    */
   function SpeechToText(node, options) {
-    node.nextLabel(options.split('/'))
+    node.nextLabel(options);
     node.on("input", function(msg) {
       const { socket } = node.flow.options;
       const params = {
@@ -384,9 +396,9 @@ module.exports = function(DRAGO, config) {
     var string = params[0];
     var isTemplated = (string||"").indexOf("{{") != -1;
     if (params.length > 1) {
-       node.nextLabel(params.slice(1))
+       node.nextLabel(params.slice(1).join('/'))
     } else {
-       node.nextLabel([string])
+       node.nextLabel(string)
     }
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
