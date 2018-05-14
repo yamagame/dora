@@ -194,6 +194,11 @@ class Dora {
   run(flow) {
   }
 
+  err(err) {
+    this.stop();
+    if (this.callback) this.callback(err, null);
+  }
+  
   exec(flow, node, msg) {
     if (flow.isRunning()) {
       const { range: {start, end} } = flow.options;
@@ -223,7 +228,7 @@ class Dora {
 
   emit(flow, node, msg) {
     if (msg === null || typeof msg === "undefined") {
-        return;
+      return;
     } else if (!util.isArray(msg)) {
       msg = [msg];
     }
@@ -349,7 +354,11 @@ if (require.main === module) {
     },
     socket,
   }, (err, msg) => {
-    console.log(msg);
+    if (err) {
+      console.error(err);
+    } else {
+      console.log(msg);
+    }
     process.exit();
   });
 }

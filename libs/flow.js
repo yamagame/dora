@@ -25,12 +25,20 @@ class Flow extends Array {
     }
   }
 
-  stop() {
+  stop(err) {
     this.running = false;
   }
 
   send(node, msg) {
     this.engine.send(this, node, msg);
+  }
+
+  err(err) {
+    if (this.parentFlow) {
+      this.parentFlow.err(err);
+      return;
+    }
+    this.engine.err(err);
   }
 
   end(node, err, msg) {

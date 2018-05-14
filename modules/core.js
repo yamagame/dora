@@ -24,8 +24,13 @@ module.exports = function(DRAGO, config) {
    *
    */
   function CoreError(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      node.send(msg);
+      var message = options || msg.payload;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      node.err(new Error(message));
     });
   }
   DRAGO.registerType('error', CoreError);

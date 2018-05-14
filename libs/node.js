@@ -21,6 +21,10 @@ class Node extends Emitter {
     this.flow.send(this, msg);
   }
 
+  err(err) {
+    this.flow.err(err);
+  }
+
   jump(msg) {
     const w = [];
     for (var i=0;i<this.wires.length-1;i++) {
