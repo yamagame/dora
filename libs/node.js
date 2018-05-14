@@ -29,7 +29,6 @@ class Node extends Emitter {
   fork(msg) {
     const w = [];
     for (var i=0;i<this.wires.length-1;i++) {
-      delete msg.labels;
       const m = clone(msg);
       m.topic = this.wires[i].labelName;
       m.topicPriority = (typeof m.topicPriority !== 'undefined') ? m.topicPriority : 0;

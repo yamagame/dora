@@ -9,7 +9,7 @@ module.exports = function(DRAGO, config) {
   function CoreLog(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      var message = options || msg.payload;
+      var message = options || JSON.stringify(msg);
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
@@ -56,10 +56,10 @@ module.exports = function(DRAGO, config) {
     const args = p.slice(1);
     node.labelName = name;
     node.on("input", function(msg) {
-      if (typeof msg.labels[name] === 'undefined') {
-        msg.labels[name] = 0;
+      if (typeof this.flow.engine.labels[name] === 'undefined') {
+        this.flow.engine.labels[name] = 0;
       }
-      msg.labels[name].value ++;
+      this.flow.engine.labels[name].value ++;
       node.send(msg);
     });
   }

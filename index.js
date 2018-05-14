@@ -223,18 +223,12 @@ class Dora {
       if (exitflag) {
         if (flow.runnode == 0 || flow.isRunning() == false) {
           flow.stop();
-          delete msg.labels;
           delete msg._forks;
           const m = clone(msg);
           if (this.callback) this.callback(null, m);
         }
       } else {
-        delete msg.labels;
         const m = clone(msg);
-        m.labels = {}
-        Object.keys(flow.engine.labels).forEach( name => {
-          m.labels[name] = flow.engine.labels[name];
-        });
         node.up();
         flow.up();
         this.exec_node = node;
@@ -276,7 +270,6 @@ class Dora {
     flow.down();
     if (flow.runnode == 0 || err || flow.isRunning() == false) {
       flow.stop();
-      delete msg.labels;
       delete msg._forks;
       const m = clone(msg);
       if (this.callback) this.callback(err, m);
