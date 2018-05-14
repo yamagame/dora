@@ -55,6 +55,9 @@ module.exports = function(DRAGO, config) {
     const name = p[0];
     const args = p.slice(1);
     node.on("input", function(msg) {
+      if (typeof msg.labels[name] === 'undefined') {
+        msg.labels[name] = 0;
+      }
       msg.labels[name].value ++;
       node.send(msg);
     });

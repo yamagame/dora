@@ -71,6 +71,22 @@ class Dora {
         this.types['label'](node, m[1]);
         node.name = 'label';
       } else
+      //ラベル行
+      if (line.indexOf('/label/') === 0) {
+        const m = line.match(/^\/.+\/(.+)$/);
+        const l = m[1].split('/');
+        if (labels[l[0]]) {
+          throw new Error('ラベルが重複しています.');
+        }
+        labels[l[0]] = {
+          node: node,
+          line: index,
+          option: l.slice(1).join('/'),
+          value: 0,
+        }
+        this.types['label'](node, m[1]);
+        node.name = 'label';
+      } else
       //コントロール行
       if (line.indexOf('/') === 0) {
         const m = line.match(/^\/(.+)$/);
@@ -345,20 +361,23 @@ if (require.main === module) {
       if (err) throw err;
       callback(data.toString());
     });
-  });
-
-  //スクリプト実行
-  dora.play({}, {
-    range: {
-      start: 0,
-    },
-    socket,
-  }, (err, msg) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log(msg);
-    }
+  }).then(()=> {
+    //スクリプト実行
+    dora.play({}, {
+      range: {
+        start: 0,
+      },
+      socket,
+    }, (err, msg) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log(msg);
+      }
+      process.exit();
+    });
+  }).catch((err) => {
+    console.error(err);
     process.exit();
-  });
+  });;
 }
