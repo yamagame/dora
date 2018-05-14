@@ -155,7 +155,7 @@ class Dora {
     }
     const lines = script.split('\n').map( (v,i) => {
       if (v === '' && i > 0) {
-        return '/1s';
+        return '/0s';
       }
       return v;
     }).join('\n').replace(/(\/\*[^*]*\*\/)|(^\/\/.*)/g, '//').trim().split('\n');

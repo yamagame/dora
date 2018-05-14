@@ -109,7 +109,15 @@ module.exports = function(DRAGO, config) {
    */
   function CoreDelay(node, options) {
     node.on("input", async function(msg) {
-      await utils.timeout(1000*parseFloat(options));
+      if (options === '0') {
+        if (typeof msg.defaultInterval === 'undefined') {
+          await utils.timeout(1000);
+        } else {
+          await utils.timeout(1000*parseFloat(msg.defaultInterval));
+        }
+      } else {
+        await utils.timeout(1000*parseFloat(options));
+      }
       node.send(msg);
     });
   }
