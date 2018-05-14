@@ -71,12 +71,20 @@ module.exports = function(DRAGO, config) {
    */
   function CoreIf(node, options) {
     const params = options.split('/');
-    const form = params[0];
-    node.nextLabel(form.slice(1).join('/'));
+    var string = params[0];
+    var isTemplated = (string||"").indexOf("{{") != -1;
+    if (params.length > 1) {
+      node.nextLabel(params.slice(1).join('/'));
+    }
     node.on("input", function(msg) {
-      if (msg.labels[form].value) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      const n = [];
+      if (isTemplated) {
+          string = utils.mustache.render(string, msg);
+      }
+      if (msg.payload.indexOf(string) >= 0) {
         node.jump(msg);
-      } else {
+      }　else {
         node.next(msg);
       }
     });
