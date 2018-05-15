@@ -305,13 +305,16 @@ class Dora {
 module.exports = Dora;
 
 if (require.main === module) {
+  const path = require('path');
   const host = process.argv[2];
   const io = require('socket.io-client');
   const socket = io(host);
   const fetch = require('node-fetch');
+  const dorascript = process.argv[3];
+  const basedir = path.dirname(dorascript);
 
   const fs = require('fs');
-  const data = fs.readFileSync(process.argv[3]);
+  const data = fs.readFileSync(dorascript);
   const dora = new Dora();
 
   //ロボットへのHTTPリクエスト
@@ -353,7 +356,7 @@ if (require.main === module) {
   //スクリプトパース
   dora.parse(data.toString(), (filename, callback) => {
     //callコマンドのファイルを読み込む処理
-    fs.readFile(filename, (err, data) => {
+    fs.readFile(path.join(basedir, filename), (err, data) => {
       if (err) throw err;
       callback(data.toString());
     });
