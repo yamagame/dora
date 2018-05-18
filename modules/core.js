@@ -197,7 +197,8 @@ module.exports = function(DRAGO, config) {
   function CoreJoin(node, options) {
     node.nextLabel(options);
     node.on("input", function(msg) {
-      if (msg._forks) {
+      let freeze = false;
+      if (msg._forks && msg._forks.length > 0) {
         const forkid = msg._forks[msg._forks.length-1];
         if (this.global()._forks && this.global()._forks[forkid]) {
           var forks = this.global()._forks[forkid];
@@ -205,6 +206,14 @@ module.exports = function(DRAGO, config) {
             forks.priority = msg.topicPriority;
             forks.name = msg.topic;
             forks.msg = clone(msg);
+            if (forks.node) {
+              const n = forks.node;
+              forks.node = node;
+              n.end(null, msg);
+            } else {
+              forks.node = node;
+            }
+            freeze = true;
           }
           forks.numWire --;
           if (forks.numWire <= 0) {
@@ -213,9 +222,12 @@ module.exports = function(DRAGO, config) {
             if (typeof forks.msg.topic !== 'undefined' && forks.msg.topicPriority !== 0) {
               forks.msg._forks = msg._forks;
               if (node.wires.length > 1) {
-                node.jump(forks.msg);
+                forks.node.jump(forks.msg);
               } else {
-                node.next(forks.msg);
+                forks.node.next(forks.msg);
+              }
+              if (!freeze) {
+                node.end(null, msg);
               }
             } else {
               if (msg.topicPriority === 0) {
@@ -229,12 +241,32 @@ module.exports = function(DRAGO, config) {
             }
             return;
           }
+        } else {
+          //error
         }
       }
-      node.end();
+      if (!freeze) {
+        node.end(null, msg);
+      }
     });
   }
   DRAGO.registerType('join', CoreJoin);
+
+  /*
+   *
+   *
+   */
+  function CoreJoinLoop(node, options) {
+    node.nextLabel(options);
+    node.on("input", function(msg) {
+      if (msg._forks && msg._forks.length > 0) {
+        node.jump(msg);
+      } else {
+        node.next(msg);
+      }
+    });
+  }
+  DRAGO.registerType('joinLoop', CoreJoinLoop);
 
   /*
    *
@@ -263,6 +295,22 @@ module.exports = function(DRAGO, config) {
     });
   }
   DRAGO.registerType('topic', CoreTopic);
+
+  /*
+   *
+   *
+   */
+  function CoreOther(node, options) {
+    node.nextLabel(options);
+    node.on("input", function(msg) {
+      if (msg.topicPriority > 0) {
+        node.next(msg);
+      } else {
+        node.jump(msg);
+      }
+    });
+  }
+  DRAGO.registerType('other', CoreOther);
 
   /*
    *
@@ -402,6 +450,29 @@ module.exports = function(DRAGO, config) {
     });
   }
   DRAGO.registerType('speech-to-text', SpeechToText);
+
+  /*
+   *
+   *
+   */
+  function CoreChat(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      const { socket } = node.flow.options;
+      var message = options || msg.payload;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      socket.emit('docomo-chat', {
+        message,
+        silence: true,
+      }, (res) => {
+        msg.payload = res;
+        node.next(msg);
+      });
+    });
+  }
+  DRAGO.registerType('chat', CoreChat);
 
   /*
    *

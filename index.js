@@ -4,6 +4,7 @@ const Core = require('./modules/core');
 const Quiz = require('./modules/quiz');
 const HTTP = require('./modules/http');
 
+const utils = require("./libs/utils");
 const util = require("util");
 const clone = require("clone");
 
@@ -44,10 +45,12 @@ class Dora {
     const labels = {}
     this.nodes = [];
     let speech = [];
-    lines.forEach( (line, index) => {
+    lines.forEach( (lineObj, _i) => {
+      const line = lineObj.out;
+      const index = lineObj.index;
       const node = new Node(flow);
       this.exec_node = node;
-      node.line = line;
+      node.line = (lineObj.code) ? lineObj.code : lineObj.out;
       node.index = index;
       flow.push(node);
       //コメント行
@@ -135,7 +138,7 @@ class Dora {
     {
       const node = new Node(flow);
       node.line = '/end';
-      node.index = lines.length;
+      node.index = lines[lines.length-1].index;
       this.types['end'](node);
       node.name = 'end';
       if (this.nodes.length > 0) {
@@ -148,17 +151,35 @@ class Dora {
     return flow;
   }
 
-  async parse(script, loader) {
-    if (!script) {
-      throw new Error('スクリプトがありません。');
-      return;
-    }
-    const lines = script.split('\n').map( (v,i) => {
+  preprocessor(script) {
+    const r = [];
+    const t = script.split('\n').map( (v,i) => {
       if (v === '' && i > 0) {
         return '/0s';
       }
       return v;
     }).join('\n').replace(/(\/\*[^*]*\*\/)|(^\/\/.*)/g, '//').trim().split('\n');
+    t.forEach( (v, i) => {
+      const m = v.match(/^\/joinAll\/(.+)$/);
+      if (m) {
+        const l = `:JOIN-${utils.generateId()}`;
+        r.push({ out: l, code: v, index: i, });
+        r.push({ out: '/join', code: v, index: i, });
+        r.push({ out: `/joinLoop/${l}`, code: v, index: i, });
+        r.push({ out: `/other/${m[1]}`, code: v, index: i, });
+      } else {
+        r.push({ out: v, index: i, });
+      }
+    });
+    return r;
+  }
+
+  async parse(script, loader) {
+    if (!script) {
+      throw new Error('スクリプトがありません。');
+      return;
+    }
+    const lines = this.preprocessor(script);
     this.labelNodes = {};
     const flow = this.initNode(lines, new Flow(this));
     this.flow = flow;
