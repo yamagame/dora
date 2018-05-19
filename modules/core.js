@@ -387,8 +387,12 @@ module.exports = function(DRAGO, config) {
    *
    */
   function CoreSet(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     const p = options.split('/');
     const field = p[0].split('.');
+    if (p.length < 2) {
+      throw new Error('パラメータがありません。');
+    }
     node.on("input", async function(msg) {
       let t = msg;
       let key = null;
@@ -411,6 +415,9 @@ module.exports = function(DRAGO, config) {
               return parseInt(v);
             }
           }
+          if (isTemplated) {
+              v = utils.mustache.render(v, msg);
+          }
           return v;
         }
         v[key]= val(p.slice(1).join('/'));
@@ -425,8 +432,12 @@ module.exports = function(DRAGO, config) {
    *
    */
   function CoreSetString(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     const p = options.split('/');
     const field = p[0].split('.');
+    if (p.length < 2) {
+      throw new Error('パラメータがありません。');
+    }
     node.on("input", async function(msg) {
       let t = msg;
       let key = null;
@@ -441,7 +452,11 @@ module.exports = function(DRAGO, config) {
         t = t[f];
       });
       if (typeof v !== 'undefined' && typeof key !== 'undefined') {
-        v[key]= p.slice(1).join('/');
+        let message = p.slice(1).join('/');
+        if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+        }
+        v[key]= message;
       }
       node.send(msg);
     });
@@ -453,8 +468,12 @@ module.exports = function(DRAGO, config) {
    *
    */
   function CoreSetNumber(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     const p = options.split('/');
     const field = p[0].split('.');
+    if (p.length < 2) {
+      throw new Error('パラメータがありません。');
+    }
     node.on("input", async function(msg) {
       let t = msg;
       let key = null;
@@ -479,7 +498,11 @@ module.exports = function(DRAGO, config) {
           }
           node.err(new Error('数字ではありません。'));
         }
-        v[key]= val(p.slice(1).join('/'));
+        let message = p.slice(1).join('/');
+        if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+        }
+        v[key]= val(message);
       }
       node.send(msg);
     });
