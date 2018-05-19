@@ -500,21 +500,17 @@ module.exports = function(DRAGO, config) {
       Object.keys(msg.quiz.quizAnswers).forEach( question => {
         const players = msg.quiz.quizAnswers[question];
         Object.keys(players).forEach( clientId => {
-          if (players[clientId].quizStartTime === msg.quiz.startTime) {
-            const name = players[clientId].name;
-            const answer = players[clientId].answer;
-            const time = new Date(players[clientId].time);
-            if (typeof result[name] === 'undefined') {
-              result[name] = { time: time, answer: answer, point: 0 };
-            } else
-            if (result[name].time.getTime() < time.getTime()) {
-              result[name] = { time: time, answer: answer, point: result[name].point };
-            }
-            if (answerCheck(question, answer)) {
-              result[name].point ++;
-            }
-          } else {
-            debugCount ++;
+          const name = players[clientId].name;
+          const answer = players[clientId].answer;
+          const time = new Date(players[clientId].time);
+          if (typeof result[name] === 'undefined') {
+            result[name] = { time: time, answer: answer, point: 0 };
+          } else
+          if (result[name].time.getTime() < time.getTime()) {
+            result[name] = { time: time, answer: answer, point: result[name].point };
+          }
+          if (answerCheck(question, answer)) {
+            result[name].point ++;
           }
         });
       });
