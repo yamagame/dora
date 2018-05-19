@@ -298,7 +298,7 @@ class Dora {
   }
 
   nextLabel(node, label) {
-    if (typeof label === 'undefined' || label === null) return;
+    if (typeof label === 'undefined' || label === null) return 0;
     if (!util.isArray(label)) {
       label = label.split('/');
     }
@@ -312,6 +312,7 @@ class Dora {
         this.labelNodes[_label].push(node);
       }
     }
+    return numLabels;
   }
 
   errorInfo() {
@@ -383,7 +384,7 @@ if (require.main === module) {
     });
   }).then(()=> {
     //スクリプト実行
-    dora.play({ payload: 'Hello' }, {
+    dora.play({ payload: 'OK' }, {
       range: {
         start: 0,
       },

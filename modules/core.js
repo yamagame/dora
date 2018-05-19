@@ -96,12 +96,67 @@ module.exports = function(DRAGO, config) {
    *
    */
   function CoreGoto(node, options) {
-    node.nextLabel(options);
+    if (node.nextLabel(options) <= 0) throw new Error('ラベルを指定してください。')
     node.on("input", function(msg) {
       node.jump(msg);
     });
   }
   DRAGO.registerType('goto', CoreGoto);
+
+  /*
+   *
+   *
+   */
+  function CoreGotoRandom(node, options) {
+    if (node.nextLabel(options) <= 0) throw new Error('ラベルを指定してください。')
+    node._counter = 0;
+    node.on("input", function(msg) {
+      if (node._counter === 0) {
+        node._randtable = node.wires.slice(0,node.wires.length-1).map( (v, i) => {
+          return i;
+        });
+        for (var i=0;i<node.wires.length*3;i++) {
+          const a = utils.randInteger(0, node.wires.length-1);
+          const b = utils.randInteger(0, node.wires.length-1);
+          const c = node._randtable[a];
+          node._randtable[a] = node._randtable[b];
+          node._randtable[b] = c;
+        }
+      }
+      const n = node._randtable[node._counter];
+      const t = node.wires.map( v => {
+        return null;
+      });
+      t[n] = msg;
+      node._counter ++;
+      if (node._counter >= node.wires.length-1) {
+        node._counter = 0;
+      }
+      node.send(t);
+    });
+  }
+  DRAGO.registerType('goto.random', CoreGotoRandom);
+
+  /*
+   *
+   *
+   */
+  function CoreGotoSequece(node, options) {
+    if (node.nextLabel(options) <= 0) throw new Error('ラベルを指定してください。')
+    node._counter = 0;
+    node.on("input", function(msg) {
+      const t = node.wires.map( v => {
+        return null;
+      });
+      t[node._counter] = msg;
+      node._counter ++;
+      if (node._counter >= node.wires.length-1) {
+        node._counter = 0;
+      }
+      node.send(t);
+    });
+  }
+  DRAGO.registerType('goto.sequece', CoreGotoSequece);
 
   /*
    *
@@ -142,14 +197,14 @@ module.exports = function(DRAGO, config) {
     node.nextLabel(options);
     node.on("input", function(msg) {
       var forkid = utils.generateId();
-      if (!this.global()._forks) {
-        this.global()._forks = {};
+      if (!node.global()._forks) {
+        node.global()._forks = {};
       }
-      if (!this.global()._forks[forkid]) {
-        this.global()._forks[forkid] = {}
+      if (!node.global()._forks[forkid]) {
+        node.global()._forks[forkid] = {}
       }
-      var forks = this.global()._forks[forkid];
-      var numOutputs = this.wires.length-1;
+      var forks = node.global()._forks[forkid];
+      var numOutputs = node.wires.length-1;
       if (!msg._forks) msg._forks = [];
       msg._forks.push(forkid);
       forks.numWire = numOutputs;
@@ -339,17 +394,97 @@ module.exports = function(DRAGO, config) {
       let key = null;
       let v = msg;
       field.forEach( f => {
-        if (typeof t !== 'undefined') {
-          key = f;
-          v = t
-          t = t[f];
+        if (typeof t === 'undefined') {
+          v[key] = {};
+          t = v[key];
         }
+        key = f;
+        v = t
+        t = t[f];
       });
-      if (typeof v !== 'undefined' && typeof key !== 'undefined') v[key]= p.slice(1).join('/');
+      if (typeof v !== 'undefined' && typeof key !== 'undefined') {
+        const val = (v) => {
+          if (utils.isNumeric(v)) {
+            if (v.indexOf('.') >= 0) {
+              return parseFloat(v);
+            } else {
+              return parseInt(v);
+            }
+          }
+          return v;
+        }
+        v[key]= val(p.slice(1).join('/'));
+      }
       node.send(msg);
     });
   }
   DRAGO.registerType('set', CoreSet);
+
+  /*
+   *
+   *
+   */
+  function CoreSetString(node, options) {
+    const p = options.split('/');
+    const field = p[0].split('.');
+    node.on("input", async function(msg) {
+      let t = msg;
+      let key = null;
+      let v = msg;
+      field.forEach( f => {
+        if (typeof t === 'undefined') {
+          v[key] = {};
+          t = v[key];
+        }
+        key = f;
+        v = t
+        t = t[f];
+      });
+      if (typeof v !== 'undefined' && typeof key !== 'undefined') {
+        v[key]= p.slice(1).join('/');
+      }
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('setString', CoreSetString);
+
+  /*
+   *
+   *
+   */
+  function CoreSetNumber(node, options) {
+    const p = options.split('/');
+    const field = p[0].split('.');
+    node.on("input", async function(msg) {
+      let t = msg;
+      let key = null;
+      let v = msg;
+      field.forEach( f => {
+        if (typeof t === 'undefined') {
+          v[key] = {};
+          t = v[key];
+        }
+        key = f;
+        v = t
+        t = t[f];
+      });
+      if (typeof v !== 'undefined' && typeof key !== 'undefined') {
+        const val = (v) => {
+          if (utils.isNumeric(v)) {
+            if (v.indexOf('.') >= 0) {
+              return parseFloat(v);
+            } else {
+              return parseInt(v);
+            }
+          }
+          node.err(new Error('数字ではありません。'));
+        }
+        v[key]= val(p.slice(1).join('/'));
+      }
+      node.send(msg);
+    });
+  }
+  DRAGO.registerType('setNumber', CoreSetNumber);
 
   /*
    *
