@@ -8,6 +8,8 @@ const utils = require("./libs/utils");
 const util = require("util");
 const clone = require("clone");
 
+const modules = [];
+
 class Dora {
   constructor(config){
     this.config = config;
@@ -23,6 +25,7 @@ class Dora {
     Quiz(this);
     this._modname = 'http';
     HTTP(this);
+    this.utils = utils;
   }
 
   load(filename, loader) {
@@ -32,6 +35,11 @@ class Dora {
   loadModule(name, mod, config) {
     this._modname = name;
     mod(this, config);
+    modules.push({
+      name,
+      mod,
+      config,
+    });
   }
 
   registerType(name, node) {
@@ -201,6 +209,10 @@ class Dora {
       const node = this.nodes[i];
       if (node.name == 'call') {
         node.dora = new Dora(this.config);
+        modules.forEach( m => {
+          node.dora._modname = m.name;
+          m.mod(node.dora, m.config);
+        });
         const script = await this.load(node.options, loader);
         await node.dora.parse(script, loader);
         node.dora.flow.parentFlow = this.flow;

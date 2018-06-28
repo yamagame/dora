@@ -1,6 +1,6 @@
 const utils = require('../libs/utils');
 
-module.exports = function(DRAGO, config) {
+module.exports = function(DORA, config) {
 
   /*
    *
@@ -19,7 +19,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('greeting', QuizGreeting);
+  DORA.registerType('greeting', QuizGreeting);
 
   /*
    *
@@ -60,7 +60,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('entry', QuizEntry);
+  DORA.registerType('entry', QuizEntry);
 
   /*
    *
@@ -73,7 +73,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('title', QuizTitle);
+  DORA.registerType('title', QuizTitle);
 
   /*
    *
@@ -86,7 +86,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('slideURL', QuizSlideURL);
+  DORA.registerType('slideURL', QuizSlideURL);
 
   /*
    *
@@ -96,19 +96,20 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
       await node.flow.request({
         type: 'quiz',
         action: 'slide',
-        photo: `${options}`,
+        photo: `${message}`,
         pages: [],
       });
       node.send(msg);
     });
   }
-  DRAGO.registerType('slide', QuizSlide);
+  DORA.registerType('slide', QuizSlide);
 
   /*
    *
@@ -118,16 +119,17 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
       msg.quiz.timer = 0;
       msg.quiz.pages = [];
-      msg.quiz.quizId = (options) ? options : ((msg.quiz.quizId) ? msg.quiz.quizId : msg.quiz.title);
+      msg.quiz.quizId = (message) ? message : ((msg.quiz.quizId) ? msg.quiz.quizId : msg.quiz.title);
       node.send(msg);
     });
   }
-  DRAGO.registerType('init', QuizInit);
+  DORA.registerType('init', QuizInit);
 
   /*
    *
@@ -140,14 +142,15 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
-      msg.quiz.quizId = options;
+      msg.quiz.quizId = message;
       node.send(msg);
     });
   }
-  DRAGO.registerType('id', QuizId);
+  DORA.registerType('id', QuizId);
 
   /*
    *
@@ -156,14 +159,16 @@ module.exports = function(DRAGO, config) {
   function QuizShuffle(node, options) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      const reset = options && (options.indexOf('reset') >= 0);
       await node.flow.request({
         type: 'quiz',
         action: 'quiz-shuffle',
+        reset,
       });
       node.send(msg);
     });
   }
-  DRAGO.registerType('shuffle', QuizShuffle);
+  DORA.registerType('shuffle', QuizShuffle);
 
   /*
    *
@@ -176,52 +181,86 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('timeLimit', QuizTimelimit);
+  DORA.registerType('timeLimit', QuizTimelimit);
 
   /*
    *
    *
    */
   function QuizSelect(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
       msg.quiz.pages.push({
         action: 'quiz',
-        question: options,
+        question: message,
         choices: [],
         answers: [],
+        selects: [],
       });
       node.send(msg);
     });
   }
-  DRAGO.registerType('select', QuizSelect);
+  DORA.registerType('select', QuizSelect);
+
+  /*
+   *
+   *
+   */
+  function QuizAnswer(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].selects.push(message);
+      node.send(msg);
+    });
+  }
+  DORA.registerType('answer', QuizAnswer);
 
   /*
    *
    *
    */
   function QuizOptionOK(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(options);
-      msg.quiz.pages[msg.quiz.pages.length-1].answers.push(options);
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(message);
+      msg.quiz.pages[msg.quiz.pages.length-1].answers.push(message);
       node.send(msg);
     });
   }
-  DRAGO.registerType('ok', QuizOptionOK);
+  DORA.registerType('ok', QuizOptionOK);
 
   /*
    *
    *
    */
   function QuizOptionNG(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(options);
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(message);
       node.send(msg);
     });
   }
-  DRAGO.registerType('ng', QuizOptionNG);
+  DORA.registerType('ng', QuizOptionNG);
 
   /*
    *
@@ -231,12 +270,13 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
       msg.quiz.pages.push({
         action: 'message',
-        title: `${options}`,
+        title: `${message}`,
         messages: [
           "右上のボタンで次のページへ進んでください。"
         ],
@@ -244,7 +284,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('messagePage', QuizMessagePage);
+  DORA.registerType('messagePage', QuizMessagePage);
 
   /*
    *
@@ -254,25 +294,51 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
       msg.quiz.pages.push({
         action: 'slide',
-        photo: `${options}`,
+        photo: `${message}`,
       });
       node.send(msg);
     });
   }
-  DRAGO.registerType('slidePage', QuizSlidePage);
+  DORA.registerType('slidePage', QuizSlidePage);
 
   /*
    *
    *
    */
+  function QuizShow(node, options) {
+    node.on("input", async function(msg) {
+      const payload = await node.flow.request({
+        type: 'quiz',
+        action: 'quiz-show',
+        time: msg.quiz.timeLimit,
+        pages: msg.quiz.pages,
+        pageNumber: 0,
+        quizId: msg.quiz.quizId,
+      });
+      msg.quiz.quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
+      node.send(msg);
+    });
+  }
+  DORA.registerType('show', QuizShow);
+
+  /*
+   *
+   * option no-time/half-title/font-small/style-answer
+   */
   function QuizOpen(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      var option = options || '';
+      if (isTemplated) {
+          option = utils.mustache.render(option, msg);
+      }
       const payload = await node.flow.request({
         type: 'quiz',
         action: 'quiz-init',
@@ -281,6 +347,7 @@ module.exports = function(DRAGO, config) {
         pageNumber: 0,
         quizId: msg.quiz.quizId,
         showSum: false,
+        options: option.split('/'),
       });
       console.log(payload);
       msg.quiz.startTime = payload;
@@ -288,7 +355,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('open', QuizOpen);
+  DORA.registerType('open', QuizOpen);
 
   /*
    *
@@ -312,7 +379,26 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('yesno', QuizYesno);
+  DORA.registerType('yesno', QuizYesno);
+
+  /*
+   *
+   *
+   */
+  function QuizQuizPage(node, options) {
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      msg.quiz.pages.push({
+        action: 'quiz',
+        question: msg.payload.quiz.question,
+        choices: msg.payload.quiz.choices,
+        answers: msg.payload.quiz.answers,
+        selects: [],
+      });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('quizPage', QuizQuizPage);
 
   /*
    *
@@ -332,7 +418,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('lastPage', QuizLastPage);
+  DORA.registerType('lastPage', QuizLastPage);
 
   /*
    *
@@ -352,6 +438,7 @@ module.exports = function(DRAGO, config) {
         time: msg.quiz.timeLimit-msg.quiz.timer,
         pages: msg.quiz.pages,
         quizId: msg.quiz.quizId,
+        quizStartTime: msg.quiz.startTime,
       });
       msg.quiz.timer ++;
       if (node.wires.length > 1) {
@@ -366,7 +453,7 @@ module.exports = function(DRAGO, config) {
       }
     });
   }
-  DRAGO.registerType('wait', QuizWait);
+  DORA.registerType('wait', QuizWait);
 
   /*
    *
@@ -389,7 +476,7 @@ module.exports = function(DRAGO, config) {
       }
     });
   }
-  DRAGO.registerType('timeCheck', QuizTimeCheck);
+  DORA.registerType('timeCheck', QuizTimeCheck);
 
   /*
    *
@@ -405,7 +492,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('stop', QuizStop);
+  DORA.registerType('stop', QuizStop);
 
   /*
    *
@@ -465,7 +552,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('result', QuizResult);
+  DORA.registerType('result', QuizResult);
 
   /*
    *
@@ -540,7 +627,7 @@ module.exports = function(DRAGO, config) {
       }
     });
   }
-  DRAGO.registerType('ranking', QuizRanking);
+  DORA.registerType('ranking', QuizRanking);
 
   /*
    *
@@ -623,7 +710,7 @@ module.exports = function(DRAGO, config) {
       }
     });
   }
-  DRAGO.registerType('answerCheck', QuizAnswerCheck);
+  DORA.registerType('answerCheck', QuizAnswerCheck);
 
   /*
    *
@@ -648,7 +735,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('message.open', QuizMessageOpen);
+  DORA.registerType('message.open', QuizMessageOpen);
 
   /*
    *
@@ -658,14 +745,15 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       initMessage(msg);
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
-      msg.quiz.message.title = options;
+      msg.quiz.message.title = message;
       node.send(msg);
     });
   }
-  DRAGO.registerType('message.title', QuizMessageTitle);
+  DORA.registerType('message.title', QuizMessageTitle);
 
   /*
    *
@@ -675,14 +763,15 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       initMessage(msg);
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
-      msg.quiz.message.messages.push(options);
+      msg.quiz.message.messages.push(message);
       node.send(msg);
     });
   }
-  DRAGO.registerType('message.content', QuizMessageContent);
+  DORA.registerType('message.content', QuizMessageContent);
 
   /*
    *
@@ -692,14 +781,15 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       initMessage(msg);
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
-      msg.quiz.message.url = options;
+      msg.quiz.message.url = message;
       node.send(msg);
     });
   }
-  DRAGO.registerType('message.url', QuizMessageUrl);
+  DORA.registerType('message.url', QuizMessageUrl);
 
   /*
    *
@@ -709,14 +799,15 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       initMessage(msg);
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
-      msg.quiz.message.link = options;
+      msg.quiz.message.link = message;
       node.send(msg);
     });
   }
-  DRAGO.registerType('message.link', QuizMessageLink);
+  DORA.registerType('message.link', QuizMessageLink);
 
   /*
    *
@@ -741,7 +832,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('message', QuizMessage);
+  DORA.registerType('message', QuizMessage);
 
   /*
    *
@@ -751,18 +842,19 @@ module.exports = function(DRAGO, config) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
       initMessage(msg);
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+          message = utils.mustache.render(message, msg);
       }
       await node.flow.request({
         type: 'movie',
         action: 'play',
-        movie: options,
+        movie: message,
       })
       node.send(msg);
     });
   }
-  DRAGO.registerType('movie.play', QuizMoviePlay);
+  DORA.registerType('movie.play', QuizMoviePlay);
 
   /*
    *
@@ -784,7 +876,7 @@ module.exports = function(DRAGO, config) {
       }, 1000);
     });
   }
-  DRAGO.registerType('movie.check', QuizMovieCheck);
+  DORA.registerType('movie.check', QuizMovieCheck);
 
   /*
    *
@@ -799,5 +891,26 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('movie.cancel', QuizMovieCancel);
+  DORA.registerType('movie.cancel', QuizMovieCancel);
+
+  /*
+   *
+   *
+   */
+  function QuizSpeech(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      await node.flow.request({
+        type: 'quiz',
+        speech: message,
+      })
+      node.send(msg);
+    });
+  }
+  DORA.registerType('speech', QuizSpeech);
 }

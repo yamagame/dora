@@ -1,7 +1,7 @@
 const utils = require('../libs/utils');
 const clone = require('clone');
 
-module.exports = function(DRAGO, config) {
+module.exports = function(DORA, config) {
   /*
    *
    *
@@ -17,7 +17,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('log', CoreLog);
+  DORA.registerType('log', CoreLog);
 
   /*
    *
@@ -33,7 +33,7 @@ module.exports = function(DRAGO, config) {
       node.err(new Error(message));
     });
   }
-  DRAGO.registerType('error', CoreError);
+  DORA.registerType('error', CoreError);
 
   /*
    *
@@ -44,7 +44,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('comment', CoreComment);
+  DORA.registerType('comment', CoreComment);
 
   /*
    *
@@ -63,7 +63,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('label', CoreLabel);
+  DORA.registerType('label', CoreLabel);
 
   /*
    *
@@ -79,17 +79,18 @@ module.exports = function(DRAGO, config) {
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
       const n = [];
+      let message = string;
       if (isTemplated) {
-          string = utils.mustache.render(string, msg);
+          message = utils.mustache.render(message, msg);
       }
-      if (msg.payload.indexOf(string) >= 0) {
+      if (msg.payload.indexOf(message) >= 0) {
         node.jump(msg);
       }　else {
         node.next(msg);
       }
     });
   }
-  DRAGO.registerType('if', CoreIf);
+  DORA.registerType('if', CoreIf);
 
   /*
    *
@@ -101,7 +102,7 @@ module.exports = function(DRAGO, config) {
       node.jump(msg);
     });
   }
-  DRAGO.registerType('goto', CoreGoto);
+  DORA.registerType('goto', CoreGoto);
 
   /*
    *
@@ -135,7 +136,7 @@ module.exports = function(DRAGO, config) {
       node.send(t);
     });
   }
-  DRAGO.registerType('goto.random', CoreGotoRandom);
+  DORA.registerType('goto.random', CoreGotoRandom);
 
   /*
    *
@@ -156,7 +157,7 @@ module.exports = function(DRAGO, config) {
       node.send(t);
     });
   }
-  DRAGO.registerType('goto.sequece', CoreGotoSequece);
+  DORA.registerType('goto.sequece', CoreGotoSequece);
 
   /*
    *
@@ -176,7 +177,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('delay', CoreDelay);
+  DORA.registerType('delay', CoreDelay);
 
   /*
    *
@@ -187,7 +188,7 @@ module.exports = function(DRAGO, config) {
       node.end(null, msg);
     });
   }
-  DRAGO.registerType('end', CoreEnd);
+  DORA.registerType('end', CoreEnd);
 
   /*
    *
@@ -214,7 +215,7 @@ module.exports = function(DRAGO, config) {
       node.fork(msg);
     });
   }
-  DRAGO.registerType('fork', CoreFork);
+  DORA.registerType('fork', CoreFork);
 
   /*
    *
@@ -230,7 +231,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('push', CorePush);
+  DORA.registerType('push', CorePush);
 
   /*
    *
@@ -243,7 +244,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('pop', CorePop);
+  DORA.registerType('pop', CorePop);
 
   /*
    *
@@ -305,7 +306,7 @@ module.exports = function(DRAGO, config) {
       }
     });
   }
-  DRAGO.registerType('join', CoreJoin);
+  DORA.registerType('join', CoreJoin);
 
   /*
    *
@@ -321,7 +322,7 @@ module.exports = function(DRAGO, config) {
       }
     });
   }
-  DRAGO.registerType('joinLoop', CoreJoinLoop);
+  DORA.registerType('joinLoop', CoreJoinLoop);
 
   /*
    *
@@ -336,7 +337,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('priority', CorePriority);
+  DORA.registerType('priority', CorePriority);
 
   /*
    *
@@ -349,7 +350,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('topic', CoreTopic);
+  DORA.registerType('topic', CoreTopic);
 
   /*
    *
@@ -365,22 +366,27 @@ module.exports = function(DRAGO, config) {
       }
     });
   }
-  DRAGO.registerType('other', CoreOther);
+  DORA.registerType('other', CoreOther);
 
   /*
    *
    *
    */
   function Sound(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
+      let message = options;
+      if (isTemplated) {
+        message = DORA.utils.mustache.render(message, msg);
+      }
       await node.flow.request({
         type: 'sound',
-        sound: options,
+        sound: message,
       });
       node.send(msg);
     });
   }
-  DRAGO.registerType('sound', Sound);
+  DORA.registerType('sound', Sound);
 
   /*
    *
@@ -398,7 +404,7 @@ module.exports = function(DRAGO, config) {
       let key = null;
       let v = msg;
       field.forEach( f => {
-        if (typeof t === 'undefined') {
+        if (typeof t === 'undefined' || typeof t !== 'object') {
           v[key] = {};
           t = v[key];
         }
@@ -416,7 +422,7 @@ module.exports = function(DRAGO, config) {
             }
           }
           if (isTemplated) {
-              v = utils.mustache.render(v, msg);
+            v = utils.mustache.render(v, msg);
           }
           return v;
         }
@@ -425,7 +431,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('set', CoreSet);
+  DORA.registerType('set', CoreSet);
 
   /*
    *
@@ -443,7 +449,7 @@ module.exports = function(DRAGO, config) {
       let key = null;
       let v = msg;
       field.forEach( f => {
-        if (typeof t === 'undefined') {
+        if (typeof t === 'undefined' || typeof t !== 'object') {
           v[key] = {};
           t = v[key];
         }
@@ -461,7 +467,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('setString', CoreSetString);
+  DORA.registerType('setString', CoreSetString);
 
   /*
    *
@@ -479,7 +485,7 @@ module.exports = function(DRAGO, config) {
       let key = null;
       let v = msg;
       field.forEach( f => {
-        if (typeof t === 'undefined') {
+        if (typeof t === 'undefined' || typeof t !== 'object') {
           v[key] = {};
           t = v[key];
         }
@@ -507,7 +513,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('setNumber', CoreSetNumber);
+  DORA.registerType('setNumber', CoreSetNumber);
 
   /*
    *
@@ -529,7 +535,57 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('get', CoreGet);
+  DORA.registerType('get', CoreGet);
+
+  /*
+   *
+   *
+   */
+  function CoreChange(node, options) {
+    const params = options.split('/');
+    if (params.length < 2) {
+      throw new Error('パラメータがありません。');
+    }
+    var isTemplated1 = (params[0]||"").indexOf("{{") != -1;
+    var isTemplated2 = (params[1]||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      let p1 = params[0];
+      let p2 = params[1];
+      if (isTemplated1) {
+        p1 = utils.mustache.render(p1, msg);
+      }
+      if (isTemplated2) {
+        p2 = utils.mustache.render(p2, msg);
+      }
+      if (p1.indexOf('.') == 0) {
+        p1 = p1.slice(1);
+      }
+      if (p2.indexOf('.') == 0) {
+        p2 = p2.slice(1);
+      }
+      const getField = (msg, field) => {
+        let val = msg;
+        let key = null;
+        field.split('.').forEach( f => {
+          if (key) {
+            if (typeof val[key] === 'undefined' || typeof val[key] !== 'object') {
+              val[key] = {};
+            }
+            val = val[key];
+          }
+          key = f;
+        });
+        return { val, key };
+      }
+      const v1 = getField(msg, p1);
+      const v2 = getField(msg, p2);
+      if (v1 && v2) {
+        v1.val[v1.key] = clone(v2.val[v2.key]);
+      }
+      node.send(msg);
+    });
+  }
+  DORA.registerType('change', CoreChange);
 
   /*
    *
@@ -554,7 +610,7 @@ module.exports = function(DRAGO, config) {
       }
     });
   }
-  DRAGO.registerType('text-to-speech', TextToSpeech);
+  DORA.registerType('text-to-speech', TextToSpeech);
 
   /*
    *
@@ -585,6 +641,10 @@ module.exports = function(DRAGO, config) {
         if (res == '[canceled]') {
           msg.payload = 'canceled';
           node.send([msg, null]);
+        } else
+        if (res == '[camera]') {
+          msg.payload = 'camera';
+          node.send([msg, null]);
         } else {
           if (res.button) {
             msg.payload = 'button';
@@ -596,10 +656,12 @@ module.exports = function(DRAGO, config) {
             msg.speechRequest = true;
             msg.payload = res.payload;
             msg.speechText = msg.payload;
+            msg.topicPriority = 0;
             node.send([null, msg]);
           } else {
             msg.payload = res;
             msg.speechText = msg.payload;
+            msg.topicPriority = 0;
             delete msg.speechRequest;
             node.send([null, msg]);
           }
@@ -607,7 +669,7 @@ module.exports = function(DRAGO, config) {
       });
     });
   }
-  DRAGO.registerType('speech-to-text', SpeechToText);
+  DORA.registerType('speech-to-text', SpeechToText);
 
   /*
    *
@@ -630,7 +692,7 @@ module.exports = function(DRAGO, config) {
       });
     });
   }
-  DRAGO.registerType('chat', CoreChat);
+  DORA.registerType('chat', CoreChat);
 
   /*
    *
@@ -648,17 +710,18 @@ module.exports = function(DRAGO, config) {
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
       const n = [];
+      let message = string;
       if (isTemplated) {
-          string = utils.mustache.render(string, msg);
+          message = utils.mustache.render(message, msg);
       }
-      if (string.trim() == msg.payload.trim()) {
+      if (message.trim() == msg.payload.trim()) {
         node.jump(msg);
       } else {
         node.next(msg);
       }
     });
   }
-  DRAGO.registerType('switch', CoreSwitch);
+  DORA.registerType('switch', CoreSwitch);
 
   /*
    *
@@ -675,17 +738,18 @@ module.exports = function(DRAGO, config) {
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = {};
       const n = [];
+      let message = string;
       if (isTemplated) {
-          string = utils.mustache.render(string, msg);
+          message = utils.mustache.render(message, msg);
       }
-      if (msg.payload.indexOf(string) >= 0) {
+      if (msg.payload.indexOf(message) >= 0) {
         msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
         msg.topicPriority += priority;
       }
       node.send(msg);
     });
   }
-  DRAGO.registerType('check', CoreCheck);
+  DORA.registerType('check', CoreCheck);
 
   /*
    *
@@ -702,7 +766,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('payload', CorePayload);
+  DORA.registerType('payload', CorePayload);
 
   /*
    *
@@ -723,7 +787,7 @@ module.exports = function(DRAGO, config) {
       });
     });
   }
-  DRAGO.registerType('call', CoreCall);
+  DORA.registerType('call', CoreCall);
 
   /*
    *
@@ -736,7 +800,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('eval', CoreEval);
+  DORA.registerType('eval', CoreEval);
 
   /*
    *
@@ -754,7 +818,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('select', QuizSelect);
+  DORA.registerType('select', QuizSelect);
 
   /*
    *
@@ -768,7 +832,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('ok', QuizOptionOK);
+  DORA.registerType('ok', QuizOptionOK);
 
   /*
    *
@@ -781,5 +845,5 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('ng', QuizOptionNG);
+  DORA.registerType('ng', QuizOptionNG);
 }

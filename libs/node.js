@@ -28,13 +28,20 @@ class Node extends Emitter {
 
   fork(msg) {
     const w = [];
-    for (var i=0;i<this.wires.length-1;i++) {
+    if (this.wires.length <= 1) {
       const m = clone(msg);
-      m.topic = this.wires[i].labelName;
+      //m.topic = this.wires[i].labelName;
       m.topicPriority = (typeof m.topicPriority !== 'undefined') ? m.topicPriority : 0;
       w.push(m);
+    } else {
+      for (var i=0;i<this.wires.length-1;i++) {
+        const m = clone(msg);
+        m.topic = this.wires[i].labelName;
+        m.topicPriority = (typeof m.topicPriority !== 'undefined') ? m.topicPriority : 0;
+        w.push(m);
+      }
+      w.push(null);
     }
-    w.push(null);
     this.send(w);
   }
 

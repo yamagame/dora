@@ -1,7 +1,7 @@
 const utils = require('../libs/utils');
 const fetch = require('node-fetch');
 
-module.exports = function(DRAGO, config) {
+module.exports = function(DORA, config) {
 
   /*
    *
@@ -10,15 +10,21 @@ module.exports = function(DRAGO, config) {
   function POSTRequest(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+        message = utils.mustache.render(message, msg);
       }
-      let response = await fetch(`${options}`, {
+      var headers = {};
+      var body = msg.payload;
+      if (typeof msg.payload === 'object') {
+        body = JSON.stringify(msg.payload);
+        JSON.parse(body);
+        headers['Content-Type'] = 'application/json';
+      }
+      let response = await fetch(`${message}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(msg.payload)
+        headers,
+        body,
       })
       const data = await response.text();
       try {
@@ -29,7 +35,7 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('post', POSTRequest);
+  DORA.registerType('post', POSTRequest);
 
   /*
    *
@@ -38,15 +44,14 @@ module.exports = function(DRAGO, config) {
   function GETRequest(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
+      let message = options;
       if (isTemplated) {
-          options = utils.mustache.render(options, msg);
+        message = utils.mustache.render(message, msg);
       }
-      let response = await fetch(`${options}`, {
+      var body = msg.payload;
+      let response = await fetch(`${message}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(msg.payload)
+        body,
       })
       const data = await response.text();
       try {
@@ -57,6 +62,6 @@ module.exports = function(DRAGO, config) {
       node.send(msg);
     });
   }
-  DRAGO.registerType('get', GETRequest);
+  DORA.registerType('get', GETRequest);
 
 }
