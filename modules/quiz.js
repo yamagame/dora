@@ -319,6 +319,7 @@ module.exports = function(DORA, config) {
         time: msg.quiz.timeLimit,
         pages: msg.quiz.pages,
         pageNumber: 0,
+        showSum: false,
         quizId: msg.quiz.quizId,
       });
       msg.quiz.quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
