@@ -663,19 +663,21 @@ module.exports = function(DORA, config) {
           const r = {}
           if (data.answers) {
             const t = data.answers[page.question];
-            Object.keys(t).forEach(key => {
-              if (typeof r[t[key].answer] === 'undefined') r[t[key].answer] = { count: 0 };
-              r[t[key].answer].count ++;
-              data.question.quiz[page.question].answers.forEach( n => {
-                if (n === t[key].answer) {
-                  r[t[key].answer].ok = true;
+            if (t) {
+              Object.keys(t).forEach(key => {
+                if (typeof r[t[key].answer] === 'undefined') r[t[key].answer] = { count: 0 };
+                r[t[key].answer].count ++;
+                data.question.quiz[page.question].answers.forEach( n => {
+                  if (n === t[key].answer) {
+                    r[t[key].answer].ok = true;
+                  }
+                });
+                if (r[t[key].answer].ok) {
+                  okCount ++;
                 }
+                totalCount ++;
               });
-              if (r[t[key].answer].ok) {
-                okCount ++;
-              }
-              totalCount ++;
-            });
+            }
           }
           sumQuestions[page.question] = r;
         }
