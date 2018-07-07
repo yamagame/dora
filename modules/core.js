@@ -165,14 +165,11 @@ module.exports = function(DORA, config) {
    */
   function CoreDelay(node, options) {
     node.on("input", async function(msg) {
+      const rate = (typeof msg.defaultInterval === 'undefined') ? 1 : parseFloat(msg.defaultInterval);
       if (options === '0') {
-        if (typeof msg.defaultInterval === 'undefined') {
-          await utils.timeout(1000);
-        } else {
-          await utils.timeout(1000*parseFloat(msg.defaultInterval));
-        }
+        await utils.timeout(parseInt(1000*rate));
       } else {
-        await utils.timeout(1000*parseFloat(options));
+        await utils.timeout(parseInt(1000*parseFloat(options)*rate));
       }
       node.send(msg);
     });
@@ -599,11 +596,18 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
+      const params = {};
+      if (typeof msg.speed !== 'undefined') {
+        params.speed = msg.speed;
+      }
+      if (typeof msg.volume !== 'undefined') {
+        params.volume = msg.volume;
+      }
       if (msg.silence) {
         msg.payload = message;
         node.send(msg);
       } else {
-        socket.emit('text-to-speech', { message }, (err, res) => {
+        socket.emit('text-to-speech', { message, ...params }, (err, res) => {
           msg.payload = message;
           node.send(msg);
         });
