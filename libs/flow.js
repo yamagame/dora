@@ -6,9 +6,11 @@ class Flow extends Array {
     this.running = false;
     this.execNodes = [];
     this.parentFlow = null;
+    this.labels = {};
   }
 
   run(node, msg) {
+    msg.labels = this.labels;
     this.running = true;
     this.engine.exec(this, node, msg);
     this.exec();

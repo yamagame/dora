@@ -54,12 +54,20 @@ module.exports = function(DORA, config) {
     const p = options.split('/');
     const name = p[0];
     const args = p.slice(1);
+    const m = name.match(/^\:(.+)/);
     node.labelName = name;
+    if (m) {
+      node.labelName = m[1];
+    }
     node.on("input", function(msg) {
-      if (typeof this.flow.engine.labels[name] === 'undefined') {
-        this.flow.engine.labels[name] = 0;
+      if (typeof this.flow.labels[node.labelName] === 'undefined') {
+        this.flow.labels[node.labelName] = 0;
       }
-      this.flow.engine.labels[name].value ++;
+      if (typeof msg.labels[node.labelName] !== 'undefined') {
+        this.flow.labels[node.labelName] = msg.labels[node.labelName];
+      }
+      this.flow.labels[node.labelName] ++;
+      msg.labels = this.flow.labels;
       node.send(msg);
     });
   }
@@ -425,6 +433,12 @@ module.exports = function(DORA, config) {
         }
         v[key]= val(p.slice(1).join('/'));
       }
+      if (msg.labels) {
+        Object.keys(msg.labels).forEach( key => {
+          const v = msg.labels[key];
+          this.flow.labels[key] = v;
+        });
+      }
       node.send(msg);
     });
   }
@@ -460,6 +474,12 @@ module.exports = function(DORA, config) {
           message = utils.mustache.render(message, msg);
         }
         v[key]= message;
+      }
+      if (msg.labels) {
+        Object.keys(msg.labels).forEach( key => {
+          const v = msg.labels[key];
+          this.flow.labels[key] = v;
+        });
       }
       node.send(msg);
     });
@@ -506,6 +526,12 @@ module.exports = function(DORA, config) {
           message = utils.mustache.render(message, msg);
         }
         v[key]= val(message);
+      }
+      if (msg.labels) {
+        Object.keys(msg.labels).forEach( key => {
+          const v = msg.labels[key];
+          this.flow.labels[key] = v;
+        });
       }
       node.send(msg);
     });
@@ -797,12 +823,25 @@ module.exports = function(DORA, config) {
    *
    *
    */
-  function CoreEval(node, options) {
+  function CoreExec(node, options) {
     node.on("input", function(msg) {
       var script = options;
       //eval(script);
       node.send(msg);
     });
+  }
+  DORA.registerType('exec', CoreExec);
+
+  /*
+   *
+   *
+   */
+  function CoreEval(node, options) {
+    node.on("input", function(msg) {
+      node.flow.engine.eval(node, msg, {}, (err, msg) => {
+        node.send(msg);
+      });
+    })
   }
   DORA.registerType('eval', CoreEval);
 
@@ -850,4 +889,21 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('ng', QuizOptionNG);
+
+  /*
+   *
+   *
+   */
+  function QuizRun(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      let nextscript = options || msg.payload;
+      if (isTemplated) {
+          nextscript = utils.mustache.render(nextscript, msg);
+      }
+      msg._nextscript = nextscript;
+      node.end(null, msg);
+    });
+  }
+  DORA.registerType('run', QuizRun);
 }

@@ -73,6 +73,7 @@ class Dora {
         if (labels[l[0]]) {
           throw new Error('ラベルが重複しています.');
         }
+        flow.labels[l[0]] = 0;
         labels[l[0]] = {
           node: node,
           line: index,
@@ -89,6 +90,7 @@ class Dora {
         if (labels[l[0]]) {
           throw new Error('ラベルが重複しています.');
         }
+        flow.labels[l[0]] = 0;
         labels[l[0]] = {
           node: node,
           line: index,
@@ -218,6 +220,38 @@ class Dora {
         node.dora.flow.parentFlow = this.flow;
       }
     }
+    this.loader = loader;
+  }
+
+  async eval(node, msg, config, callback) {
+    if (typeof msg.script === 'undefined') {
+      if (callback) callback(null, msg);
+      return;
+    }
+    const { script } = msg;
+    const { socket } = this.flow.options;
+    const dora = new Dora(config);
+    modules.forEach( m => {
+      dora._modname = m.name;
+      m.mod(dora, m.config);
+    });
+    const s = (typeof script === 'string') ? script : script.join('\n');
+    if (s === '') {
+      if (callback) callback(null, msg);
+      return;
+    }
+    await dora.parse(s, this.loader);
+    dora.flow.parentFlow = node.flow;
+    dora.flow.options = {
+      range: {
+        start: 0,
+      },
+      socket,
+    }
+    dora.callback = (err, msg) => {
+      if (callback) callback(err, msg);
+    }
+    dora.flow.run(dora.nodes[0], msg);
   }
 
   play(msg, options, callback) {
