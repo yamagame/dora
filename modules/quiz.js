@@ -115,6 +115,29 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function QuizStartScreen(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      await node.flow.request({
+        type: 'quiz',
+        action: 'startScreen',
+        photo: `${message}`,
+        pages: [],
+      });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('startScreen', QuizStartScreen);
+
+  /*
+   *
+   *
+   */
   function QuizInit(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {

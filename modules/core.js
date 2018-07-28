@@ -666,40 +666,94 @@ module.exports = function(DORA, config) {
         node.recording = false;
         if (res == '[timeout]') {
           msg.payload = 'timeout';
-          node.send([msg, null]);
+          node.send(msg);
         } else
         if (res == '[canceled]') {
           msg.payload = 'canceled';
-          node.send([msg, null]);
+          node.send(msg);
         } else
         if (res == '[camera]') {
           msg.payload = 'camera';
-          node.send([msg, null]);
+          node.send(msg);
         } else {
           if (res.button) {
             msg.payload = 'button';
             msg.button = res;
             delete res.button;
-            node.send([msg, null]);
+            node.send(msg);
           } else
           if (res.speechRequest) {
             msg.speechRequest = true;
             msg.payload = res.payload;
             msg.speechText = msg.payload;
             msg.topicPriority = 0;
-            node.send([null, msg]);
+            node.next(msg);
           } else {
             msg.payload = res;
             msg.speechText = msg.payload;
             msg.topicPriority = 0;
             delete msg.speechRequest;
-            node.send([null, msg]);
+            node.next(msg);
           }
         }
       });
     });
   }
   DORA.registerType('speech-to-text', SpeechToText);
+
+  /*
+   *
+   *
+   */
+  function WaitEvent(node, options) {
+    node.nextLabel(options);
+    node.on("input", function(msg) {
+      const { socket } = node.flow.options;
+      const params = {
+        timeout: 0,
+        sensitivity: 'keep',
+      };
+      params.timeout = 0;
+      node.recording = true;
+      socket.emit('speech-to-text', params, (res) => {
+        if (!node.recording) return;
+        node.recording = false;
+        if (res == '[timeout]') {
+          msg.payload = 'timeout';
+          node.send(msg);
+        } else
+        if (res == '[canceled]') {
+          msg.payload = 'canceled';
+          node.send(msg);
+        } else
+        if (res == '[camera]') {
+          msg.payload = 'camera';
+          node.send(msg);
+        } else {
+          if (res.button) {
+            msg.payload = 'button';
+            msg.button = res;
+            delete res.button;
+            node.send(msg);
+          } else
+          if (res.speechRequest) {
+            msg.speechRequest = true;
+            msg.payload = res.payload;
+            msg.speechText = msg.payload;
+            msg.topicPriority = 0;
+            node.next(msg);
+          } else {
+            msg.payload = res;
+            msg.speechText = msg.payload;
+            msg.topicPriority = 0;
+            delete msg.speechRequest;
+            node.next(msg);
+          }
+        }
+      });
+    });
+  }
+  DORA.registerType('wait-event', WaitEvent);
 
   /*
    *

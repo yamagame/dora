@@ -295,6 +295,15 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
     - canceled
     - button
 
+- wait-event
+
+      /wait-event
+
+  タイムアウトやキャンセルメッセージを受信するとpayloadに以下の文字が代入され次へ処理が移ります。
+
+    - canceled
+    - button
+
 - chat
 
       /chat/こんにちは
@@ -401,6 +410,15 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /quiz.slide/images/sunset/001.jpeg
 
   クイズのスライド画像を画面に表示します。画像はPicturesフォルダに入っているファイルを表示します。
+
+- quiz.startScreen
+
+      /quiz.startScreen/images/sunset/001.jpeg
+      /wait-event
+
+  スタートボタンのついたクイズのスライド画像を画面に表示します。画像はPicturesフォルダに入っているファイルを表示します。
+
+  スタートボタンをクリックすると、canceledイベントを発行します。
 
 - quiz.init
 
@@ -620,6 +638,32 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /quiz.movie.cancel
 
   動画の再生を停止します。
+
+## LED Module
+
+- led.auto
+
+      /led.auto
+
+  LEDボタンを点灯を自動モードにします。自動モードでは、音声認識中にLEDボタンは点灯します。通常は自動モードです。
+
+- led.on
+
+      /led.on
+
+  LEDボタンを点灯させます。
+
+- led.off
+
+      /led.off
+
+  LEDボタンを消灯させます。
+
+- led.blink
+
+      /led.blink
+
+  LEDボタンを点滅させます。
 
 ## カスタムモジュールの追加方法
 

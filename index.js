@@ -3,6 +3,7 @@ const Node = require('./libs/node');
 const Core = require('./modules/core');
 const Quiz = require('./modules/quiz');
 const HTTP = require('./modules/http');
+const LED = require('./modules/led');
 
 const utils = require("./libs/utils");
 const util = require("util");
@@ -25,6 +26,8 @@ class Dora {
     Quiz(this);
     this._modname = 'http';
     HTTP(this);
+    this._modname = 'led';
+    LED(this);
     this.utils = utils;
   }
 
