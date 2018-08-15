@@ -169,11 +169,13 @@ module.exports = function(DORA, config) {
   function QuizInit(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      if (typeof msg.quiz === 'undefined') msg.quiz = {};
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
+      msg.quiz.timer = 0;
+      msg.quiz.pages = [];
       msg.quiz.quizId = (message) ? message : ((msg.quiz.quizId) ? msg.quiz.quizId : msg.quiz.title);
       node.send(msg);
     });
