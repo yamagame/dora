@@ -14,10 +14,20 @@ const randInteger = function(min, max) {
   return Math.floor(Math.random() * (max - min) ) + min;
 }
 
+const quizObject = function(quiz={}) {
+  return {
+    timeLimit: 60,
+    timer: 0,
+    pages: [],
+    ...quiz,
+  }
+}
+
 module.exports = {
   timeout,
   generateId,
   mustache,
   isNumeric,
   randInteger,
+  quizObject,
 }

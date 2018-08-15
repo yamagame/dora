@@ -29,6 +29,7 @@ class Dora {
     this._modname = 'led';
     LED(this);
     this.utils = utils;
+    this._errorInfo = {};
   }
 
   load(filename, loader) {
@@ -258,6 +259,7 @@ class Dora {
   }
 
   play(msg, options, callback) {
+    this._errorInfo = {};
     if (this.flow) {
       this.flow.stop();
     }
@@ -265,7 +267,30 @@ class Dora {
     this.flow.options = options;
     const { range: {start, end} } = options;
     if (start) {
-      this.flow.run(this.nodes[start], msg);
+      if (end && start > end) {
+        this._errorInfo = {
+          lineNumber: 0,
+          code: '範囲実行エラー',
+          reason: `無効な実行範囲です。開始行:${start} 終了行:${end}`,
+        }
+        if (callback) callback(this._errorInfo, msg);
+        return;
+      }
+      if (!this.nodes.some( v => {
+        if (v.index == start) {
+          this.flow.run(v, msg);
+          return true;
+        }
+        return false;
+      })) {
+        this._errorInfo = {
+          lineNumber: 0,
+          code: '範囲実行エラー',
+          reason: `${start}行がありません。`,
+        }
+        if (callback) callback(this._errorInfo, msg);
+        return;
+      }
     } else {
       this.flow.run(this.nodes[0], msg);
     }
@@ -365,11 +390,14 @@ class Dora {
   }
 
   errorInfo() {
-    return {
-      lineNumber: this.exec_node.index+1,
-      code: this.exec_node.line,
-      reason: this.exec_node.reason,
+    if (this.exec_node) {
+      return {
+        lineNumber: this.exec_node.index+1,
+        code: this.exec_node.line,
+        reason: this.exec_node.reason,
+      }
     }
+    return this._errorInfo;
   }
 }
 

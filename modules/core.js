@@ -1,4 +1,5 @@
 const utils = require('../libs/utils');
+const mecab = require('../libs/mecab');
 const clone = require('clone');
 
 module.exports = function(DORA, config) {
@@ -85,7 +86,7 @@ module.exports = function(DORA, config) {
       node.nextLabel(params.slice(1).join('/'));
     }
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       const n = [];
       let message = string;
       if (isTemplated) {
@@ -792,7 +793,7 @@ module.exports = function(DORA, config) {
        node.nextLabel(string)
     }
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       const n = [];
       let message = string;
       if (isTemplated) {
@@ -820,7 +821,7 @@ module.exports = function(DORA, config) {
       priority = parseInt(params[1]);
     }
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       const n = [];
       let message = string;
       if (isTemplated) {
@@ -834,6 +835,45 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('check', CoreCheck);
+
+  /*
+   *
+   *
+   */
+  function CoreMecab(node, options) {
+    const params = options.split('/');
+    var string = params[0];
+    var isTemplated = (string||"").indexOf("{{") != -1;
+    var priority = 10;
+    if (params.length > 1) {
+      priority = parseInt(params[1]);
+    }
+    node.on("input", function(msg) {
+      msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      const n = [];
+      let message = string;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      if (node._message == null || node._message !== message) {
+        node._message = message;
+        mecab.compare(node._message, msg.payload, (err, point, data) => {
+          if (err) node.err(new Error('比較エラー'));
+          msg.topicPriority += point;
+          node._data = data;
+          node.send(msg);
+        })
+      } else {
+        mecab.compare(node._data, msg.payload, (err, point, data) => {
+          if (err) node.err(new Error('比較エラー'));
+          msg.topicPriority += point;
+          node.send(msg);
+        })
+      }
+    });
+  }
+  DORA.registerType('mecab', CoreMecab);
 
   /*
    *
@@ -867,6 +907,7 @@ module.exports = function(DORA, config) {
         start: 0,
       }
       node.dora.play(msg, opt, (err, msg) => {
+        if (err) node.err(new Error('再生エラー。'));
         node.send(msg);
       });
     });
@@ -904,13 +945,19 @@ module.exports = function(DORA, config) {
    *
    */
   function QuizSelect(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
       msg.quiz.pages.push({
         action: 'quiz',
-        question: options,
+        question: message,
         choices: [],
         answers: [],
+        selects: [],
       });
       node.send(msg);
     });
@@ -921,9 +968,27 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function QuizSelectLayout(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let layout = options;
+      if (isTemplated) {
+          layout = utils.mustache.render(layout, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].layout = layout;
+      node.send(msg);
+    });
+  }
+  DORA.registerType('select.layout', QuizSelectLayout);
+
+  /*
+   *
+   *
+   */
   function QuizOptionOK(node, options) {
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       msg.quiz.pages[msg.quiz.pages.length-1].choices.push(options);
       msg.quiz.pages[msg.quiz.pages.length-1].answers.push(options);
       node.send(msg);
@@ -935,9 +1000,28 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function QuizOptionOKImage(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, });
+      msg.quiz.pages[msg.quiz.pages.length-1].answers.push(message);
+      node.send(msg);
+    });
+  }
+  DORA.registerType('ok.image', QuizOptionOKImage);
+
+  /*
+   *
+   *
+   */
   function QuizOptionNG(node, options) {
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       msg.quiz.pages[msg.quiz.pages.length-1].choices.push(options);
       node.send(msg);
     });
@@ -948,14 +1032,45 @@ module.exports = function(DORA, config) {
    *
    *
    */
-  function QuizRun(node, options) {
+  function QuizOptionNGImage(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('ng.image', QuizOptionNGImage);
+
+  /*
+   *
+   *
+   */
+  function QuizRun(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
       let nextscript = options || msg.payload;
       if (isTemplated) {
           nextscript = utils.mustache.render(nextscript, msg);
       }
-      msg._nextscript = nextscript;
+      nextscript = nextscript.trim();
+      console.log(`nextscript ${nextscript}`);
+      if (nextscript.indexOf('http') == 0) {
+        const res = await node.flow.request({
+          type: 'scenario',
+          action: 'load',
+          uri: nextscript,
+          username: msg.username,
+        });
+        console.log(`res ${JSON.stringify(res)}`);
+        msg._nextscript = res.next_script;
+      } else {
+        msg._nextscript = nextscript;
+      }
       node.end(null, msg);
     });
   }

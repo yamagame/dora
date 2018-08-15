@@ -415,7 +415,19 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
       /quiz.slide/images/sunset/001.jpeg
 
-  クイズのスライド画像を画面に表示します。画像はPicturesフォルダに入っているファイルを表示します。
+  クイズのスライド画像を画面に表示します。
+  imagesから始まった画像はPicturesフォルダに入っているファイルを表示します。
+  httpから始まった画像はそのURLの画像を表示します。
+  
+      /quiz.slide/https://upload.wikimedia.org/wikipedia/commons/d/df/Televox_and_R._J._Wensley_1928.jpg
+
+- quiz.preload
+
+      /quiz.preload/images/sunset/001.jpeg
+
+  クイズのスライド画像を読み込みます。画面には表示しません。
+  imagesから始まった画像はPicturesフォルダに入っているファイルを読み込みます。
+  httpから始まった画像はそのURLの画像を読み込みます。
 
 - quiz.startScreen
 

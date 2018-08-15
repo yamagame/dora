@@ -2,13 +2,13 @@ const utils = require('../libs/utils');
 
 module.exports = function(DORA, config) {
 
-  /*
+  /**
    *
    *
    */
   function QuizGreeting(node, options) {
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       var d = new Date();
       console.log(d.getHours());
       if (d.getHours()+1 >= 11) {
@@ -21,13 +21,13 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('greeting', QuizGreeting);
 
-  /*
+  /**
    *
    *
    */
   function QuizEntry(node, options) {
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       await node.flow.request('command', {
         restype: 'text',
       }, {
@@ -62,40 +62,40 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('entry', QuizEntry);
 
-  /*
+  /**
    *
    *
    */
   function QuizTitle(node, options) {
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       msg.quiz.title = options;
       node.send(msg);
     });
   }
   DORA.registerType('title', QuizTitle);
 
-  /*
+  /**
    *
    *
    */
   function QuizSlideURL(node, options) {
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       msg.quiz.slideURL = options;
       node.send(msg);
     });
   }
   DORA.registerType('slideURL', QuizSlideURL);
 
-  /*
+  /**
    *
    *
    */
   function QuizSlide(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -111,14 +111,42 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('slide', QuizSlide);
 
-  /*
+  /**
+   *
+   *
+   */
+  function QuizPreload(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      const params = {};
+      if (typeof msg.cacheSize !== 'undefined') {
+        params.cacheSize = msg.cacheSize;
+      }
+      await node.flow.request({
+        type: 'quiz',
+        action: 'preload',
+        photo: `${message}`,
+        params,
+        pages: [],
+      });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('preload', QuizPreload);
+
+  /**
    *
    *
    */
   function QuizStartScreen(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -134,27 +162,25 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('startScreen', QuizStartScreen);
 
-  /*
+  /**
    *
    *
    */
   function QuizInit(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      msg.quiz.timer = 0;
-      msg.quiz.pages = [];
       msg.quiz.quizId = (message) ? message : ((msg.quiz.quizId) ? msg.quiz.quizId : msg.quiz.title);
       node.send(msg);
     });
   }
   DORA.registerType('init', QuizInit);
 
-  /*
+  /**
    *
    *
    */
@@ -164,7 +190,7 @@ module.exports = function(DORA, config) {
     }
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -175,13 +201,13 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('id', QuizId);
 
-  /*
+  /**
    *
    *
    */
   function QuizShuffle(node, options) {
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       const reset = options && (options.indexOf('reset') >= 0);
       await node.flow.request({
         type: 'quiz',
@@ -193,27 +219,27 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('shuffle', QuizShuffle);
 
-  /*
+  /**
    *
    *
    */
   function QuizTimelimit(node, options) {
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       msg.quiz.timeLimit = parseInt(options);
       node.send(msg);
     });
   }
   DORA.registerType('timeLimit', QuizTimelimit);
 
-  /*
+  /**
    *
    *
    */
   function QuizSelect(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -230,14 +256,32 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('select', QuizSelect);
 
-  /*
-   *
-   *
+  /**
+   * 選択肢のレイアウトを変更する。指定できるレイアウトはgridのみ。
+   * 例) /quiz.select.layout/grid
+   */
+  function QuizSelectLayout(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let layout = options;
+      if (isTemplated) {
+          layout = utils.mustache.render(layout, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].layout = layout;
+      node.send(msg);
+    });
+  }
+  DORA.registerType('select.layout', QuizSelectLayout);
+
+  /**
+   * 選択肢を選択状態にする。
+   * 例) /quiz.answer/みかん
    */
   function QuizAnswer(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -248,14 +292,14 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('answer', QuizAnswer);
 
-  /*
+  /**
    *
    *
    */
   function QuizOptionOK(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -267,14 +311,33 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('ok', QuizOptionOK);
 
-  /*
+  /**
+   *
+   *
+   */
+  function QuizOptionOKImage(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, });
+      msg.quiz.pages[msg.quiz.pages.length-1].answers.push(message);
+      node.send(msg);
+    });
+  }
+  DORA.registerType('ok.image', QuizOptionOKImage);
+
+  /**
    *
    *
    */
   function QuizOptionNG(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -285,14 +348,45 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('ng', QuizOptionNG);
 
-  /*
+  /**
+   *
+   *
+   */
+  function QuizOptionNGImage(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('ng.image', QuizOptionNGImage);
+
+  /**
+   *
+   *
+   */
+  function QuizSideImage(node, options) {
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      msg.quiz.pages[msg.quiz.pages.length-1].sideImage = { url: options };
+      node.send(msg);
+    });
+  }
+  DORA.registerType('sideImage', QuizSideImage);
+
+  /**
    *
    *
    */
   function QuizMessagePage(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -309,14 +403,14 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('messagePage', QuizMessagePage);
 
-  /*
+  /**
    *
    *
    */
   function QuizSlidePage(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -330,12 +424,56 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('slidePage', QuizSlidePage);
 
-  /*
+  /**
    *
    *
    */
   function QuizShow(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      var option = options || '';
+      if (isTemplated) {
+          option = utils.mustache.render(option, msg);
+      }
+      option = option.split('/');
+      if (option.indexOf('shuffle') >= 0) {
+        //各ページの選択項目のOKの位置を変更する
+        msg.quiz.pages.forEach( (page, index) => {
+          if (page.action === 'quiz') {
+            const okchoices = [];
+            const ngchoices = [];
+            page.choices.forEach( a => {
+              if (page.answers.some( b => {
+                if (typeof a === 'object') {
+                  return (a.value === b);
+                } else {
+                  return (a === b);
+                }
+              })) {
+                okchoices.push(a);
+              } else {
+                ngchoices.push(a);
+              }
+            })
+            const choices = [];
+            while (choices.length<page.choices.length) {
+              if (choices.length === (index % page.choices.length)) {
+                while (okchoices.length>0) {
+                  choices.push(okchoices.shift());
+                }
+              } else {
+                if (ngchoices.length>0) {
+                  choices.push(ngchoices.shift());
+                }
+              }
+            }
+            page.choices = choices;
+          }
+        });
+      }
+      const speechButton = (option.indexOf('speech-button') >= 0);
+      const noSave = (option.indexOf('no-save') >= 0);
       const payload = await node.flow.request({
         type: 'quiz',
         action: 'quiz-show',
@@ -343,22 +481,26 @@ module.exports = function(DORA, config) {
         pages: msg.quiz.pages,
         pageNumber: 0,
         showSum: false,
+        speechButton,
+        noSave,
         quizId: msg.quiz.quizId,
       });
+      msg.quiz.speechButton = speechButton;
+      msg.quiz.noSave = noSave;
       msg.quiz.quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
       node.send(msg);
     });
   }
   DORA.registerType('show', QuizShow);
 
-  /*
+  /**
    *
    * option no-time/half-title/font-small/style-answer
    */
   function QuizOpen(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       var option = options || '';
       if (isTemplated) {
           option = utils.mustache.render(option, msg);
@@ -373,6 +515,7 @@ module.exports = function(DORA, config) {
         showSum: false,
         options: option.split('/'),
       });
+      msg.showSum = false;
       console.log(payload);
       msg.quiz.startTime = payload;
       msg.quiz.quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
@@ -381,13 +524,18 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('open', QuizOpen);
 
-  /*
+  /**
    *
    *
    */
   function QuizYesno(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      var option = options || '';
+      if (isTemplated) {
+          option = utils.mustache.render(option, msg);
+      }
       const payload = await node.flow.request({
         type: 'quiz',
         action: 'quiz-init',
@@ -396,7 +544,9 @@ module.exports = function(DORA, config) {
         pageNumber: 0,
         quizId: msg.quiz.quizId,
         showSum: true,
+        options: option.split('/'),
       });
+      msg.showSum = true;
       console.log(payload);
       msg.quiz.startTime = payload;
       msg.quiz.quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
@@ -405,13 +555,13 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('yesno', QuizYesno);
 
-  /*
+  /**
    *
    *
    */
   function QuizQuizPage(node, options) {
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       msg.quiz.pages.push({
         action: 'quiz',
         question: msg.payload.quiz.question,
@@ -424,13 +574,13 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('quizPage', QuizQuizPage);
 
-  /*
+  /**
    *
    *
    */
   function QuizLastPage(node, options) {
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       const lastPage = msg.quiz.pages[msg.quiz.pages.length-1];
       //ラストページに結果表示画面を追加
       if (lastPage.action !== 'result') {
@@ -444,7 +594,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('lastPage', QuizLastPage);
 
-  /*
+  /**
    *
    *
    */
@@ -454,7 +604,7 @@ module.exports = function(DORA, config) {
       node.nextLabel(params.join('/'))
     }
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       await utils.timeout(1000);
       await node.flow.request({
         type: 'quiz',
@@ -479,7 +629,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('wait', QuizWait);
 
-  /*
+  /**
    *
    *
    */
@@ -490,7 +640,7 @@ module.exports = function(DORA, config) {
        node.nextLabel(params.slice(1).join('/'))
     }
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       const { timer, timeLimit } = msg.quiz;
       const n = [];
       if ((waitTime < 0 && timer-timeLimit == waitTime) || (timer == waitTime)) {
@@ -502,13 +652,13 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('timeCheck', QuizTimeCheck);
 
-  /*
+  /**
    *
    *
    */
   function QuizStop(node, options) {
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       await node.flow.request({
         type: 'quiz',
         action: 'quiz-stop',
@@ -518,7 +668,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('stop', QuizStop);
 
-  /*
+  /**
    *
    *
    */
@@ -528,7 +678,7 @@ module.exports = function(DORA, config) {
       pageNumber = parseInt(options);
     }
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       const { pages } = msg.quiz;
       if (pageNumber === null) {
         let num = 0;
@@ -578,14 +728,14 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('result', QuizResult);
 
-  /*
+  /**
    *
    *
    */
   function QuizRanking(node, options) {
     node.nextLabel(options)
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       const quizAnswers = await node.flow.request({
         type: 'quiz',
         action: 'quiz-ranking',
@@ -653,7 +803,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('ranking', QuizRanking);
 
-  /*
+  /**
    *
    *
    */
@@ -671,11 +821,12 @@ module.exports = function(DORA, config) {
       }
     }
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       const data = await node.flow.request('result', {
         type: 'answers',
         quizId: msg.quiz.quizId,
         startTime: msg.quiz.startTime,
+        showSum: msg.showSum,
       });
       const pages = msg.quiz.pages;
       const sumQuestions = {};
@@ -705,6 +856,10 @@ module.exports = function(DORA, config) {
           sumQuestions[page.question] = r;
         }
       });
+
+      if (msg.quiz.totalCount) {
+        totalCount = msg.quiz.totalCount;
+      }
 
       const rate = () => {
         if (totalCount <= 0) {
@@ -738,18 +893,40 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('answerCheck', QuizAnswerCheck);
 
-  /*
+  /**
+   *
+   *
+   */
+  function QuizTotalCount(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      if (options) {
+        let count = options;
+        if (isTemplated) {
+            count = utils.mustache.render(count, msg);
+        }
+        msg.quiz.totalCount = parseInt(count);
+      } else {
+        msg.quiz.totalCount = 0;
+      }
+      node.send(msg);
+    });
+  }
+  DORA.registerType('totalCount', QuizTotalCount);
+
+  /**
    *
    *
    */
   function initMessage(msg) {
-    if (typeof msg.quiz === 'undefined') msg.quiz = {};
+    if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
     if (typeof msg.quiz.title === 'undefined') msg.quiz.title = '';
     if (typeof msg.quiz.message === 'undefined') msg.quiz.message = {};
     if (typeof msg.quiz.message.messages === 'undefined') msg.quiz.message.messages = [];
   }
 
-  /*
+  /**
    *
    *
    */
@@ -763,7 +940,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('message.open', QuizMessageOpen);
 
-  /*
+  /**
    *
    *
    */
@@ -781,7 +958,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('message.title', QuizMessageTitle);
 
-  /*
+  /**
    *
    *
    */
@@ -799,7 +976,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('message.content', QuizMessageContent);
 
-  /*
+  /**
    *
    *
    */
@@ -817,7 +994,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('message.url', QuizMessageUrl);
 
-  /*
+  /**
    *
    *
    */
@@ -835,7 +1012,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('message.link', QuizMessageLink);
 
-  /*
+  /**
    *
    *
    */
@@ -860,7 +1037,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('message', QuizMessage);
 
-  /*
+  /**
    *
    *
    */
@@ -882,7 +1059,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('movie.play', QuizMoviePlay);
 
-  /*
+  /**
    *
    *
    */
@@ -904,7 +1081,7 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('movie.check', QuizMovieCheck);
 
-  /*
+  /**
    *
    *
    */
@@ -919,14 +1096,13 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('movie.cancel', QuizMovieCancel);
 
-  /*
+  /**
    *
    *
    */
   function QuizSpeech(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = {};
       let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
