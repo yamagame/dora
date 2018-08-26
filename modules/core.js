@@ -106,7 +106,7 @@ module.exports = function(DORA, config) {
    *
    */
   function CoreGoto(node, options) {
-    if (node.nextLabel(options) <= 0) throw new Error('ラベルを指定してください。')
+    if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
     node.on("input", function(msg) {
       node.jump(msg);
     });
@@ -118,7 +118,7 @@ module.exports = function(DORA, config) {
    *
    */
   function CoreGotoRandom(node, options) {
-    if (node.nextLabel(options) <= 0) throw new Error('ラベルを指定してください。')
+    if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
     node._counter = 0;
     node.on("input", function(msg) {
       if (node._counter === 0) {
@@ -152,7 +152,7 @@ module.exports = function(DORA, config) {
    *
    */
   function CoreGotoSequece(node, options) {
-    if (node.nextLabel(options) <= 0) throw new Error('ラベルを指定してください。')
+    if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
     node._counter = 0;
     node.on("input", function(msg) {
       const t = node.wires.map( v => {

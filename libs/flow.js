@@ -59,6 +59,10 @@ class Flow extends Array {
     return this.engine.nextLabel(node, label);
   }
 
+  goto(node, msg, labels) {
+    return this.engine.goto(this, node, msg, labels);
+  }
+
   isRunning() {
     if (this.parentFlow) {
       return this.parentFlow.isRunning();

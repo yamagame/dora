@@ -373,12 +373,31 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
   POSTリクエストします。レスポンスはpayloadに代入されます。
 
+  タイムアウトはフォルトで3秒です。下記のようにするとタイムアウトを10秒に変更できます。
+
+      /.httpTimeout/10000
+      /.payload/2018:05:01
+      /http.post/http://localhost:1880/weather
+
 - http.get
 
       /.payload/2018:05:01
       /http.get/http://localhost:1880/weather
 
    GETリクエストします。レスポンスはpayloadに代入されます。
+
+- http.error
+
+      /http.error/:HTTPエラー
+      /http.get/http://localhost:1880/weather
+      HTTPリクエストに成功しました。
+      /end
+
+      :HTTPエラー
+      HTTPエラーです
+      /end
+
+   HTTPリクエストでエラーが発生したら、指定したラベルへ遷移します。
 
 ## Quiz Module
 

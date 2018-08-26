@@ -78,6 +78,10 @@ class Node extends Emitter {
   nextLabel(label) {
     return this.flow.nextLabel(this, label);
   }
+
+  goto(msg, labels) {
+    return this.flow.goto(this, msg, labels);
+  }
 }
 
 module.exports = Node;

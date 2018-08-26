@@ -341,15 +341,29 @@ class Dora {
     let numOutputs = node.wires.length;
     for (var i = 0; i < numOutputs; i++) {
       if (i < msg.length) {
-        const msgs = msg[i];
-        if (msgs === null || typeof msgs === "undefined") {
+        const msg_one = msg[i];
+        if (msg_one === null || typeof msg_one === "undefined") {
         } else {
           const next = node.wires[i];
-          this.exec(flow, next, msgs);
+          this.exec(flow, next, msg_one);
         }
       }
     }
     flow.exec();
+  }
+
+  goto(flow, node, msg, labels) {
+    if (flow && node) {
+      node.down();
+      flow.down();
+      for (var i=0;i<labels.length;i++) {
+        const label = labels[i].slice(1);
+        if (this.labels[label]) {
+          this.exec(flow, this.labels[label].node, msg);
+        }
+      }
+      flow.exec();
+    }
   }
 
   send(flow, node, msg) {
@@ -372,7 +386,7 @@ class Dora {
   }
 
   nextLabel(node, label) {
-    if (typeof label === 'undefined' || label === null) return 0;
+    if (typeof label === 'undefined' || label === null) return [];
     if (!util.isArray(label)) {
       label = label.split('/');
     }
@@ -386,7 +400,7 @@ class Dora {
         this.labelNodes[_label].push(node);
       }
     }
-    return numLabels;
+    return label;
   }
 
   errorInfo() {
