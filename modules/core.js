@@ -624,11 +624,14 @@ module.exports = function(DORA, config) {
           message = utils.mustache.render(message, msg);
       }
       const params = {};
-      if (typeof msg.speed !== 'undefined') {
-        params.speed = msg.speed;
+      if (typeof msg.speechSpeed !== 'undefined') {
+        params.speed = msg.speechSpeed;
       }
-      if (typeof msg.volume !== 'undefined') {
-        params.volume = msg.volume;
+      if (typeof msg.speechVolume !== 'undefined') {
+        params.volume = msg.speechVolume;
+      }
+      if (typeof msg.speechLanguage !== 'undefined') {
+        params.language = msg.speechLanguage;
       }
       if (msg.silence) {
         msg.payload = message;
@@ -660,6 +663,9 @@ module.exports = function(DORA, config) {
       }
       if (typeof msg.sensitivity !== 'undefined') {
         params.sensitivity = msg.sensitivity;
+      }
+      if (typeof msg.languageCode !== 'undefined') {
+        params.languageCode = msg.languageCode;
       }
       node.recording = true;
       socket.emit('speech-to-text', params, (res) => {
