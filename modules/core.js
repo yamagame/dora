@@ -624,14 +624,36 @@ module.exports = function(DORA, config) {
           message = utils.mustache.render(message, msg);
       }
       const params = {};
-      if (typeof msg.speechSpeed !== 'undefined') {
-        params.speed = msg.speechSpeed;
-      }
-      if (typeof msg.speechVolume !== 'undefined') {
-        params.volume = msg.speechVolume;
-      }
-      if (typeof msg.speechLanguage !== 'undefined') {
-        params.language = msg.speechLanguage;
+      if (typeof msg.speech !== 'undefined') {
+        //aquesTalk Pi向けパラメータ
+        if (typeof msg.speech.speed !== 'undefined') {
+          params.speed = msg.speech.speed;
+        }
+        if (typeof msg.speech.volume !== 'undefined') {
+          params.volume = msg.speech.volume;
+        }
+        //google text-to-speech向けパラメータ
+        if (typeof msg.speech.languageCode !== 'undefined') {
+          params.languageCode = msg.speech.languageCode;
+        }
+        if (typeof msg.speech.audioEncoding !== 'undefined') {
+          params.audioEncoding = msg.speech.audioEncoding;
+        }
+        if (typeof msg.speech.gender !== 'undefined') {
+          params.ssmlGender = msg.speech.gender;
+        }
+        if (typeof msg.speech.rate !== 'undefined') {
+          params.speakingRate = msg.speech.rate;
+        }
+        if (typeof msg.speech.pitch !== 'undefined') {
+          params.pitch = msg.speech.pitch;
+        }
+        if (typeof msg.speech.name !== 'undefined') {
+          params.name = msg.speech.name;
+        }
+        if (typeof msg.speech.host !== 'undefined') {
+          params.host = msg.speech.host;
+        }
       }
       if (msg.silence) {
         msg.payload = message;
@@ -664,8 +686,16 @@ module.exports = function(DORA, config) {
       if (typeof msg.sensitivity !== 'undefined') {
         params.sensitivity = msg.sensitivity;
       }
-      if (typeof msg.languageCode !== 'undefined') {
-        params.languageCode = msg.languageCode;
+      if (typeof msg.voice !== 'undefined') {
+        if (typeof msg.voice.timeout !== 'undefined') {
+          params.timeout = msg.voice.timeout;
+        }
+        if (typeof msg.voice.sensitivity !== 'undefined') {
+          params.sensitivity = msg.voice.sensitivity;
+        }
+        if (typeof msg.voice.languageCode !== 'undefined') {
+          params.languageCode = msg.voice.languageCode.split('/');
+        }
       }
       node.recording = true;
       socket.emit('speech-to-text', params, (res) => {
@@ -694,6 +724,15 @@ module.exports = function(DORA, config) {
             msg.payload = res.payload;
             msg.speechText = msg.payload;
             msg.topicPriority = 0;
+            node.next(msg);
+          } else
+          if (typeof res === 'object') {
+            msg.languageCode = res.languageCode,
+            msg.confidence = res.confidence;
+            msg.payload = res.transcript;
+            msg.speechText = msg.payload;
+            msg.topicPriority = 0;
+            delete msg.speechRequest;
             node.next(msg);
           } else {
             msg.payload = res;
@@ -748,6 +787,15 @@ module.exports = function(DORA, config) {
             msg.payload = res.payload;
             msg.speechText = msg.payload;
             msg.topicPriority = 0;
+            node.next(msg);
+          } else
+          if (typeof res === 'object') {
+            msg.languageCode = res.languageCode,
+            msg.confidence = res.confidence;
+            msg.payload = res.transcript;
+            msg.speechText = msg.payload;
+            msg.topicPriority = 0;
+            delete msg.speechRequest;
             node.next(msg);
           } else {
             msg.payload = res;
