@@ -16,7 +16,7 @@ module.exports = function(DORA, config) {
           message = utils.mustache.render(message, msg);
         }
         var headers = {};
-        var body = (mode === 'credential')?{ payload: msg.payload }:msg.payload;
+        var body = msg.payload;
         if (typeof body === 'object') {
           if (mode === 'credential') {
             body = {
@@ -24,6 +24,14 @@ module.exports = function(DORA, config) {
               ...this.credential(),
             };
           }
+          body = JSON.stringify(body);
+          headers['Content-Type'] = 'application/json';
+        } else
+        if (mode === 'credential') {
+          body = {
+            payload: body,
+            ...this.credential(),
+          };
           body = JSON.stringify(body);
           headers['Content-Type'] = 'application/json';
         }
@@ -84,7 +92,8 @@ module.exports = function(DORA, config) {
         if (isTemplated) {
           message = utils.mustache.render(message, msg);
         }
-        var body = (mode === 'credential')?{ payload: msg.payload }:msg.payload;
+        var headers = {};
+        var body = msg.payload;
         if (typeof body === 'object') {
           if (mode === 'credential') {
             body = {
@@ -92,6 +101,14 @@ module.exports = function(DORA, config) {
               ...this.credential(),
             };
           }
+          body = JSON.stringify(body);
+          headers['Content-Type'] = 'application/json';
+        } else
+        if (mode === 'credential') {
+          body = {
+            payload: body,
+            ...this.credential(),
+          };
           body = JSON.stringify(body);
           headers['Content-Type'] = 'application/json';
         }
