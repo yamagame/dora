@@ -15,6 +15,10 @@ class Node extends Emitter {
     return this.flow.engine.global;
   }
 
+  credential() {
+    return this.flow.credential();
+  }
+
   status(status) {
   }
 

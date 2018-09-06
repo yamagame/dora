@@ -69,6 +69,14 @@ class Flow extends Array {
     }
     return this.running;
   }
+  
+  credential() {
+    if (this.parentFlow) {
+      return this.parentFlow.credential();
+    } else {
+      return this.engine.credential;
+    }
+  }
 
   async request(command, options, params) {
     if (this.parentFlow) {

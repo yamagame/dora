@@ -259,6 +259,9 @@ class Dora {
   }
 
   play(msg, options, callback) {
+    if (!('credential' in this)) {
+      this.credential = {};
+    }
     this._errorInfo = {};
     if (this.flow) {
       this.flow.stop();

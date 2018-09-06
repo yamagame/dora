@@ -372,6 +372,42 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function QuizOptionButton(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, type: 'option', });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('optionButton', QuizOptionButton);
+
+  /**
+   *
+   *
+   */
+  function QuizOptionImageButton(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, type: 'option', });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('optionImageButton', QuizOptionImageButton);
+
+  /**
+   *
+   *
+   */
   function QuizSideImage(node, options) {
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
@@ -445,7 +481,7 @@ module.exports = function(DORA, config) {
           if (page.action === 'quiz') {
             const okchoices = [];
             const ngchoices = [];
-            page.choices.forEach( a => {
+            page.choices.forEach( (a, i) => {
               if (page.answers.some( b => {
                 if (typeof a === 'object') {
                   return (a.value === b);

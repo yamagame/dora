@@ -1,6 +1,7 @@
 const utils = require('../libs/utils');
 const mecab = require('../libs/mecab');
 const clone = require('clone');
+const fetch = require('node-fetch');
 
 module.exports = function(DORA, config) {
   /*
@@ -659,7 +660,11 @@ module.exports = function(DORA, config) {
         msg.payload = message;
         node.send(msg);
       } else {
-        socket.emit('text-to-speech', { message, ...params }, (err, res) => {
+        socket.emit('text-to-speech', {
+          message,
+          ...params,
+          ...this.credential(),
+        }, (err, res) => {
           msg.payload = message;
           node.send(msg);
         });
@@ -698,7 +703,10 @@ module.exports = function(DORA, config) {
         }
       }
       node.recording = true;
-      socket.emit('speech-to-text', params, (res) => {
+      socket.emit('speech-to-text', {
+        ...params,
+        ...this.credential(),
+      }, (res) => {
         if (!node.recording) return;
         node.recording = false;
         if (res == '[timeout]') {
@@ -761,7 +769,10 @@ module.exports = function(DORA, config) {
       };
       params.timeout = 0;
       node.recording = true;
-      socket.emit('speech-to-text', params, (res) => {
+      socket.emit('speech-to-text', {
+        ...params,
+        ...this.credential(),
+      }, (res) => {
         if (!node.recording) return;
         node.recording = false;
         if (res == '[timeout]') {
@@ -825,6 +836,7 @@ module.exports = function(DORA, config) {
       socket.emit('docomo-chat', {
         message,
         silence: true,
+        ...this.credential(),
       }, (res) => {
         msg.payload = res;
         node.next(msg);
@@ -1129,4 +1141,59 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('run', QuizRun);
+
+  /*
+   * Google Sheet に値を書き込む
+   *
+   */
+  function AppendToGoogleSheet(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      try {
+        let message = options || msg.payload;
+        if (isTemplated) {
+            message = utils.mustache.render(message, msg);
+        }
+        if (message) {
+          const payload = message.split('/');
+          const body = {
+            payload,
+            ...this.credential(),
+          }
+          if (typeof msg.googleSheetId !== 'undefined') {
+            let host = 'localhost';
+            let port = 3090;
+            if (typeof msg.dora !== 'undefined') {
+              if (typeof msg.dora.host !== 'undefined') {
+                host = msg.dora.host;
+              }
+              if (typeof msg.dora.port !== 'undefined') {
+                port = msg.dora.port;
+              }
+            }
+            body.sheetId = msg.googleSheetId;
+            headers = {};
+            headers['Content-Type'] = 'application/json';
+            let response = await fetch(`http://${host}:${port}/google/append-to-sheet`, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify(body),
+            })
+            if (response.ok) {
+              const data = await response.text();
+              //レスポンスは処理しない
+            }
+          } else {
+            //エラーは処理しない
+          }
+        } else {
+          //エラーは処理しない
+        }
+      } catch(err) {
+        //エラーは処理しない
+      }
+      node.next(msg);
+    });
+  }
+  DORA.registerType('append-to-google-sheet', AppendToGoogleSheet);
 }
