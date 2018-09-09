@@ -844,6 +844,7 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('chat', CoreChat);
+  DORA.registerType('docomo-chat', CoreChat);
 
   /*
    *
@@ -879,24 +880,22 @@ module.exports = function(DORA, config) {
    *
    */
   function CoreCheck(node, options) {
-    const params = options.split('/');
-    var string = params[0];
-    var isTemplated = (string||"").indexOf("{{") != -1;
-    var priority = 10;
-    if (params.length > 1) {
-      priority = parseInt(params[1]);
-    }
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    var priority = 1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      const n = [];
-      let message = string;
+      let message = options;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      if (msg.payload.indexOf(message) >= 0) {
-        msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
-        msg.topicPriority += priority;
-      }
+      const params = message.split('/');
+      const n = [];
+      msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
+      params.forEach( message => {
+        if (msg.payload.indexOf(message) >= 0) {
+          msg.topicPriority += priority;
+        }
+      })
       node.send(msg);
     });
   }
@@ -910,10 +909,6 @@ module.exports = function(DORA, config) {
     const params = options.split('/');
     var string = params[0];
     var isTemplated = (string||"").indexOf("{{") != -1;
-    var priority = 10;
-    if (params.length > 1) {
-      priority = parseInt(params[1]);
-    }
     node.on("input", function(msg) {
       msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
