@@ -671,6 +671,30 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function QuizStart(node, options) {
+    const params = (options) ? options.split('/') : [];
+    if (params.length > 0) {
+      node.nextLabel(params.join('/'))
+    }
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      await node.flow.request({
+        type: 'quiz',
+        action: 'quiz-start',
+        time: msg.quiz.timeLimit-msg.quiz.timer,
+        pages: msg.quiz.pages,
+        quizId: msg.quiz.quizId,
+        quizStartTime: msg.quiz.startTime,
+      });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('start', QuizStart);
+
+  /**
+   *
+   *
+   */
   function QuizTimeCheck(node, options) {
     const params = options.split('/');
     const waitTime = parseInt(params[0]);
