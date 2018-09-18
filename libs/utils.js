@@ -23,6 +23,36 @@ const quizObject = function(quiz={}) {
   }
 }
 
+const nGramCheck = function(str1, str2) {
+  try {
+    const s1 = str1.trim().split(' ').filter( v => v != '' );
+    const s2 = str2.trim().split(' ').filter( v => v != '' );
+    let n1 = 0;
+    let n2 = 0;
+    let n3 = 0;
+    s1.forEach( (a, i) => {
+      s2.forEach( (b, j) => {
+        if (s1[i+0] === s2[j+0]) {
+          n1 ++;
+          if (s1.length > i+1 && s2.length > j+1) {
+            if (s1[i+1] === s2[j+1]) {
+              n2 ++;
+              if (s1.length > i+2 && s2.length > j+2) {
+                if (s1[i+2] === s2[j+2]) {
+                  n3 ++;
+                }
+              }
+            }
+          }
+        }
+      })
+    })
+    return n1+n2+n3;
+  } catch(err) {
+  }
+  return 0;
+}
+
 module.exports = {
   timeout,
   generateId,
@@ -30,4 +60,18 @@ module.exports = {
   isNumeric,
   randInteger,
   quizObject,
+  nGramCheck,
+}
+
+if (require.main === module) {
+  const mecab = require('./mecab');
+  const a = '明日の天気は';
+  const b = '今日の天気は';
+  mecab.parse(a, (err, result1) => {
+    mecab.parse(b, (err, result2) => {
+      const s1 = result1.map( v => v[0] ).join(' ');
+      const s2 = result2.map( v => v[0] ).join(' ');
+      console.log(nGramCheck(s1, s2));
+    })
+  })
 }

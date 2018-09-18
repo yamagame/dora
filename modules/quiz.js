@@ -1171,7 +1171,7 @@ module.exports = function(DORA, config) {
       }
       await node.flow.request({
         type: 'quiz',
-        speech: message,
+        speech: (typeof message === 'undefined')?'':message,
       })
       node.send(msg);
     });

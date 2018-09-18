@@ -11,11 +11,19 @@ module.exports = function(DORA, config) {
   function CoreLog(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      var message = options || JSON.stringify(msg);
-      if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+      let logstr = '';
+      logstr += 'log-->\n';
+      try {
+        var message = options || JSON.stringify(msg, null, '  ');
+        if (isTemplated) {
+            message = utils.mustache.render(message, msg);
+        }
+        logstr += message;
+      } catch(err) {
+        logstr += options;
       }
-      console.log(message);
+      logstr += '\n<--log';
+      console.log(logstr);
       node.send(msg);
     });
   }
@@ -881,7 +889,6 @@ module.exports = function(DORA, config) {
    */
   function CoreCheck(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
-    var priority = 1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       let message = options;
@@ -892,9 +899,7 @@ module.exports = function(DORA, config) {
       const n = [];
       msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
       params.forEach( message => {
-        if (msg.payload.indexOf(message) >= 0) {
-          msg.topicPriority += priority;
-        }
+        msg.topicPriority += utils.nGramCheck(msg.payload, message);
       })
       node.send(msg);
     });
@@ -906,8 +911,36 @@ module.exports = function(DORA, config) {
    *
    */
   function CoreMecab(node, options) {
-    const params = options.split('/');
-    var string = params[0];
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      let payload = options;
+      if (payload === '' || payload === null) {
+        payload = msg.payload;
+      } else {
+        if (isTemplated) {
+            payload = utils.mustache.render(payload, msg);
+        }
+      }
+      mecab.parse(payload, (err, result) => {
+        if (err) node.err(err);
+        if (!('mecab' in msg)) {
+          msg.mecab = {};
+        }
+        msg.mecab.result = result.map( v => {
+          return v[0];
+        }).join(' ');
+        node.send(msg);
+      });
+    });
+  }
+  DORA.registerType('mecab', CoreMecab);
+
+  /*
+   *
+   *
+   */
+  function CoreMecabCheck(node, options) {
+    const string = options.split('/');
     var isTemplated = (string||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
@@ -934,7 +967,7 @@ module.exports = function(DORA, config) {
       }
     });
   }
-  DORA.registerType('mecab', CoreMecab);
+  DORA.registerType('mecabCheck', CoreMecabCheck);
 
   /*
    *

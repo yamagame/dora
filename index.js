@@ -107,7 +107,7 @@ class Dora {
       //コントロール行
       if (line.indexOf('/') === 0) {
         const m = line.match(/^\/(.+)$/);
-        const t = m[1].match(/(.+?)\/(.+)/);
+        const t = m[1].match(/(.+?)\/(.*)/);
         if (t) {
           var cmd = t[1];
           var opt = t[2];

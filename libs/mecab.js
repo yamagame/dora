@@ -211,14 +211,14 @@ const functions = {
     return generate(sentense);
   },
   //重要文字を抜き出し
-  parse: function(sentense) {
+  preprocess: function(sentense) {
     return generate(sentense).map( v => {
       return parse(v);
     })
   },
   //形態素解析
-  mecab: function(sentense, callback) {
-    mecab.parse(sentence, callback);
+  parse: function(sentense, callback) {
+    mecab.parse(sentense, callback);
   },
   //組み合わせ文字から形態素解析まで
   prepare,
@@ -247,10 +247,14 @@ const functions = {
 module.exports = functions;
 
 if (require.main === module) {
-  const src = process.argv[2] || "明日の天気[を教えて|が知りたい]";
-  const dst = process.argv[3] || '明日の天気教え';
-  functions.compare(src, dst, (err, point) => {
-    if (err) console.log(err);
-    console.log(`src:${src} dst:${dst} point:${point}`);
+  // const src = process.argv[2] || "明日の天気[を教えて|が知りたい]";
+  // const dst = process.argv[3] || '明日の天気教え';
+  // functions.compare(src, dst, (err, point) => {
+  //   if (err) console.log(err);
+  //   console.log(`src:${src} dst:${dst} point:${point}`);
+  // })
+
+  functions.parse('明日の天気を教えて', (err, result) => {
+    console.log(result);
   })
 }
