@@ -188,14 +188,18 @@ class Dora {
     return r;
   }
 
-  async parse(script, loader) {
+  async parse(script, filename, loader) {
     if (!script) {
       throw new Error('スクリプトがありません。');
       return;
     }
+    if (typeof filename !== 'string') {
+      loader = filename;
+    }
     const lines = this.preprocessor(script);
     this.labelNodes = {};
     const flow = this.initNode(lines, new Flow(this));
+    flow.filename = filename;
     this.flow = flow;
     Object.keys(this.labelNodes).forEach( key => {
       const _key = key.slice(1);
@@ -219,8 +223,9 @@ class Dora {
           node.dora._modname = m.name;
           m.mod(node.dora, m.config);
         });
-        const script = await this.load(node.options, loader);
-        await node.dora.parse(script, loader);
+        const filename = node.options;
+        const script = await this.load(filename, loader);
+        await node.dora.parse(script, filename, loader);
         node.dora.flow.parentFlow = this.flow;
       }
     }
@@ -470,7 +475,7 @@ if (require.main === module) {
   }
 
   //スクリプトパース
-  dora.parse(data.toString(), (filename, callback) => {
+  dora.parse(data.toString(), dorascript, (filename, callback) => {
     //callコマンドのファイルを読み込む処理
     fs.readFile(path.join(basedir, filename), (err, data) => {
       if (err) throw err;

@@ -11,8 +11,9 @@ module.exports = function(DORA, config) {
   function CoreLog(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
+      const { socket } = node.flow.options;
       let logstr = '';
-      logstr += 'log-->\n';
+      logstr += '';
       try {
         var message = options || JSON.stringify(msg, null, '  ');
         if (isTemplated) {
@@ -22,8 +23,14 @@ module.exports = function(DORA, config) {
       } catch(err) {
         logstr += options;
       }
-      logstr += '\n<--log';
-      console.log(logstr);
+      console.log(`log-->\n${logstr}\n<--log`);
+      socket.emit('dora-event', {
+        action: 'log',
+        message: logstr,
+        lineNumber: node.index+1,
+        filename: node.flow.filename,
+        ...this.credential(),
+      })
       node.send(msg);
     });
   }
@@ -672,7 +679,7 @@ module.exports = function(DORA, config) {
           message,
           ...params,
           ...this.credential(),
-        }, (err, res) => {
+        }, (res) => {
           msg.payload = message;
           node.send(msg);
         });
