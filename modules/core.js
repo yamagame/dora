@@ -782,7 +782,11 @@ module.exports = function(DORA, config) {
         timeout: 0,
         sensitivity: 'keep',
       };
-      params.timeout = 0;
+      if (typeof msg.waitevent !== 'undefined'
+       && typeof msg.waitevent.timeout !== 'undefined') {
+        params.timeout = msg.waitevent.timeout;
+      }
+      params.recording = false;
       node.recording = true;
       socket.emit('speech-to-text', {
         ...params,
