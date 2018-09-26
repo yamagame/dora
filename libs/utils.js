@@ -27,6 +27,7 @@ const nGramCheck = function(str1, str2) {
   try {
     const s1 = str1.trim().split(' ').filter( v => v != '' );
     const s2 = str2.trim().split(' ').filter( v => v != '' );
+    if (s1 === s2) return 9999;
     let n1 = 0;
     let n2 = 0;
     let n3 = 0;
@@ -47,6 +48,25 @@ const nGramCheck = function(str1, str2) {
         }
       })
     })
+    s2.forEach( (a, i) => {
+      s1.forEach( (b, j) => {
+        if (s1[i+0] === s2[j+0]) {
+          n1 ++;
+          if (s1.length > i+1 && s2.length > j+1) {
+            if (s1[i+1] === s2[j+1]) {
+              n2 ++;
+              if (s1.length > i+2 && s2.length > j+2) {
+                if (s1[i+2] === s2[j+2]) {
+                  n3 ++;
+                }
+              }
+            }
+          }
+        }
+      })
+    })
+    if (str1.indexOf(str2) >= 0) n1 ++;
+    if (str2.indexOf(str1) >= 0) n1 ++;
     return n1+n2+n3;
   } catch(err) {
   }

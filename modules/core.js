@@ -963,14 +963,14 @@ module.exports = function(DORA, config) {
       }
       if (node._message == null || node._message !== message) {
         node._message = message;
-        mecab.compare(node._message, msg.payload, (err, point, data) => {
+        mecab.compare(node._message, msg.payload, (err, { point, sentenses, length, }) => {
           if (err) node.err(new Error('比較エラー'));
           msg.topicPriority += point;
-          node._data = data;
+          node._data = sentenses;
           node.send(msg);
         })
       } else {
-        mecab.compare(node._data, msg.payload, (err, point, data) => {
+        mecab.compare(node._data, msg.payload, (err, { point, sentenses, length, }) => {
           if (err) node.err(new Error('比較エラー'));
           msg.topicPriority += point;
           node.send(msg);

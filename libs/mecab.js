@@ -224,14 +224,23 @@ const functions = {
   prepare,
   //比較
   compare: function(sentense, target, callback) {
-    const cmp = (sentense, target, callback) => {
+    const cmp = (sentenses, target, callback) => {
       mecab.parse(target, (err, result) => {
-        const point = Math.max(...sentense.map( s => {
+        let point = 0;
+        let length = 0;
+        sentenses.forEach( s => {
           const t = { sentence: target, result, };
           const p = compare(s, t);
-          return p;
-        }));
-        callback(null, point, sentense);
+          if (point < p) {
+            point = p;
+            length = target.length;
+          }
+        });
+        callback(null, {
+          point,
+          length,
+          sentenses,
+        });
       })
     }
     if (typeof target === 'string') {
@@ -249,9 +258,9 @@ module.exports = functions;
 if (require.main === module) {
   // const src = process.argv[2] || "明日の天気[を教えて|が知りたい]";
   // const dst = process.argv[3] || '明日の天気教え';
-  // functions.compare(src, dst, (err, point) => {
+  // functions.compare(src, dst, (err, result) => {
   //   if (err) console.log(err);
-  //   console.log(`src:${src} dst:${dst} point:${point}`);
+  //   console.log(`src:${src} dst:${dst} point:${result.point} length:${result.length}`);
   // })
 
   functions.parse('明日の天気を教えて', (err, result) => {
