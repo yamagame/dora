@@ -26,12 +26,17 @@ module.exports = function(DORA, config) {
           }
           body = JSON.stringify(body);
           headers['Content-Type'] = 'application/json';
-        } else
-        if (mode === 'credential') {
-          body = {
-            payload: body,
-            ...this.credential(),
-          };
+        } else {
+          if (mode === 'credential') {
+            body = {
+              payload: body,
+              ...this.credential(),
+            };
+          } else {
+            body = {
+              payload: body,
+            }
+          }
           body = JSON.stringify(body);
           headers['Content-Type'] = 'application/json';
         }
@@ -51,7 +56,6 @@ module.exports = function(DORA, config) {
             }
           } else {
             if (msg._httpErrorInterrupt && msg._httpErrorInterrupt.length > 0) {
-              console.log(`${response}`);
               msg.payload = {
                 status: response.status,
                 statusText: response.statusText,
@@ -62,13 +66,13 @@ module.exports = function(DORA, config) {
           }
         } catch(err) {
           console.log(err);
+          msg.payload = {
+            code: err.code,
+            type: err.type,
+            errno: err.errno,
+            message: err.message,
+          }
           if (msg._httpErrorInterrupt && msg._httpErrorInterrupt.length > 0) {
-            msg.payload = {
-              code: err.code,
-              type: err.type,
-              errno: err.errno,
-              message: err.message,
-            }
             node.goto(msg, msg._httpErrorInterrupt);
             return;
           }
@@ -92,30 +96,9 @@ module.exports = function(DORA, config) {
         if (isTemplated) {
           message = utils.mustache.render(message, msg);
         }
-        var headers = {};
-        var body = msg.payload;
-        if (typeof body === 'object') {
-          if (mode === 'credential') {
-            body = {
-              ...body,
-              ...this.credential(),
-            };
-          }
-          body = JSON.stringify(body);
-          headers['Content-Type'] = 'application/json';
-        } else
-        if (mode === 'credential') {
-          body = {
-            payload: body,
-            ...this.credential(),
-          };
-          body = JSON.stringify(body);
-          headers['Content-Type'] = 'application/json';
-        }
         try {
           let response = await fetch(`${message}`, {
             method: 'GET',
-            body,
             timeout: ('httpTimeout' in msg)?msg.httpTimeout:3000,
           })
           if (response.ok) {
@@ -138,13 +121,13 @@ module.exports = function(DORA, config) {
           }
         } catch(err) {
           console.log(err);
+          msg.payload = {
+            code: err.code,
+            type: err.type,
+            errno: err.errno,
+            message: err.message,
+          }
           if (msg._httpErrorInterrupt && msg._httpErrorInterrupt.length > 0) {
-            msg.payload = {
-              code: err.code,
-              type: err.type,
-              errno: err.errno,
-              message: err.message,
-            }
             node.goto(msg, msg._httpErrorInterrupt);
             return;
           }
@@ -154,7 +137,6 @@ module.exports = function(DORA, config) {
     }
   }
   DORA.registerType('get', GETRequest('normal'));
-  DORA.registerType('credential.get', POSTRequest('credential'));
 
   /*
    *
