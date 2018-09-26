@@ -381,7 +381,6 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
 - http.get
 
-      /.payload/2018:05:01
       /http.get/http://localhost:1880/weather
 
    GETリクエストします。レスポンスはpayloadに代入されます。
