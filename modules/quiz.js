@@ -49,6 +49,8 @@ module.exports = function(DORA, config) {
         action: 'quiz-entry',
         title: (msg.quiz.message) ? msg.quiz.message.title : null,
         messages: (msg.quiz.message) ? msg.quiz.message.messages : null,
+        backgroundImage: (msg.quiz.backgroundImage) ? msg.quiz.backgroundImage : null,
+        backgroundColor: (msg.quiz.backgroundColor) ? msg.quiz.backgroundColor : null,
         links: (msg.quiz.message) ? [
           {
             title: msg.quiz.message.link,
