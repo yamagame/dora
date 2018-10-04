@@ -1,5 +1,46 @@
 const utils = require('../libs/utils');
 
+function QuizButton(type, node, msg, options, isTemplated) {
+  if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+  let message = options;
+  if (isTemplated) {
+      message = utils.mustache.render(message, msg);
+  }
+  const page = msg.quiz.pages[msg.quiz.pages.length-1];
+  const params = {
+    value: message,
+  }
+  if (type.indexOf('image') >= 0) {
+    params.image = message;
+  }
+  if ('quizOptions' in msg) {
+    const options = msg.quizOptions;
+    if ('fontScale' in options) params.fontScale = options.fontScale;
+    if ('marginTop' in options) params.marginTop = options.marginTop;
+  }
+  page.choices.push(params);
+  if (type.indexOf('ok') >= 0) {
+    page.answers.push(message);
+  }
+  node.send(msg);
+}
+
+function QuizOK(node, msg, options, isTemplated) {
+  QuizButton('ok', node, msg, options, isTemplated);
+}
+
+function QuizOKImage(node, msg, options, isTemplated) {
+  QuizButton('ok/image', node, msg, options, isTemplated);
+}
+
+function QuizNG(node, msg, options, isTemplated) {
+  QuizButton('ng', node, msg, options, isTemplated);
+}
+
+function QuizNGImage(node, msg, options, isTemplated) {
+  QuizButton('ng/image', node, msg, options, isTemplated);
+}
+
 module.exports = function(DORA, config) {
 
   /**
@@ -303,14 +344,7 @@ module.exports = function(DORA, config) {
   function QuizOptionOK(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      let message = options;
-      if (isTemplated) {
-          message = utils.mustache.render(message, msg);
-      }
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(message);
-      msg.quiz.pages[msg.quiz.pages.length-1].answers.push(message);
-      node.send(msg);
+      QuizOK(node, msg, options, isTemplated);
     });
   }
   DORA.registerType('ok', QuizOptionOK);
@@ -322,14 +356,7 @@ module.exports = function(DORA, config) {
   function QuizOptionOKImage(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      let message = options;
-      if (isTemplated) {
-          message = utils.mustache.render(message, msg);
-      }
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, });
-      msg.quiz.pages[msg.quiz.pages.length-1].answers.push(message);
-      node.send(msg);
+      QuizOKImage(node, msg, options, isTemplated);
     });
   }
   DORA.registerType('ok.image', QuizOptionOKImage);
@@ -341,13 +368,7 @@ module.exports = function(DORA, config) {
   function QuizOptionNG(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      let message = options;
-      if (isTemplated) {
-          message = utils.mustache.render(message, msg);
-      }
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(message);
-      node.send(msg);
+      QuizNG(node, msg, options, isTemplated);
     });
   }
   DORA.registerType('ng', QuizOptionNG);
@@ -356,16 +377,36 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function QuizOption(key) {
+    return function(node, options) {
+      var isTemplated = (options||"").indexOf("{{") != -1;
+      node.on("input", function(msg) {
+        if (key === 'reset') {
+          delete msg.quizOptions;
+        } else {
+          if (typeof msg.quizOptions === 'undefined') msg.quizOptions = {};
+          let value = options;
+          if (isTemplated) {
+              value = utils.mustache.render(value, msg);
+          }
+          msg.quizOptions[key] = value;
+        }
+        node.send(msg);
+      });
+    }
+  }
+  DORA.registerType('option.fontScale', QuizOption('fontScale'));
+  DORA.registerType('option.marginTop', QuizOption('marginTop'));
+  DORA.registerType('option.reset', QuizOption('reset'));
+
+  /**
+   *
+   *
+   */
   function QuizOptionNGImage(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      let message = options;
-      if (isTemplated) {
-          message = utils.mustache.render(message, msg);
-      }
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, });
-      node.send(msg);
+      QuizNGImage(node, msg, options, isTemplated);
     });
   }
   DORA.registerType('ng.image', QuizOptionNGImage);
@@ -410,14 +451,15 @@ module.exports = function(DORA, config) {
    *
    *
    */
-  function QuizSideImage(node, options) {
+  function QuizImage(node, options) {
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       msg.quiz.pages[msg.quiz.pages.length-1].sideImage = { url: options };
       node.send(msg);
     });
   }
-  DORA.registerType('sideImage', QuizSideImage);
+  DORA.registerType('sideImage', QuizImage);
+  DORA.registerType('image', QuizImage);
 
   /**
    *
@@ -1180,3 +1222,8 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('speech', QuizSpeech);
 }
+
+module.exports.QuizOK = QuizOK;
+module.exports.QuizNG = QuizNG;
+module.exports.QuizOKImage = QuizOKImage;
+module.exports.QuizNGImage = QuizNGImage;

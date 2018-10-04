@@ -2,6 +2,12 @@ const utils = require('../libs/utils');
 const mecab = require('../libs/mecab');
 const clone = require('clone');
 const fetch = require('node-fetch');
+const {
+  QuizOK,
+  QuizOKImage,
+  QuizNG,
+  QuizNGImage,
+} = require('./quiz');
 
 module.exports = function(DORA, config) {
   /*
@@ -1092,11 +1098,9 @@ module.exports = function(DORA, config) {
    *
    */
   function QuizOptionOK(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(options);
-      msg.quiz.pages[msg.quiz.pages.length-1].answers.push(options);
-      node.send(msg);
+      QuizOK(node, msg, options, isTemplated);
     });
   }
   DORA.registerType('ok', QuizOptionOK);
@@ -1108,14 +1112,7 @@ module.exports = function(DORA, config) {
   function QuizOptionOKImage(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      let message = options;
-      if (isTemplated) {
-          message = utils.mustache.render(message, msg);
-      }
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, });
-      msg.quiz.pages[msg.quiz.pages.length-1].answers.push(message);
-      node.send(msg);
+      QuizOKImage(node, msg, options, isTemplated);
     });
   }
   DORA.registerType('ok.image', QuizOptionOKImage);
@@ -1125,10 +1122,9 @@ module.exports = function(DORA, config) {
    *
    */
   function QuizOptionNG(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push(options);
-      node.send(msg);
+      QuizNG(node, msg, options, isTemplated);
     });
   }
   DORA.registerType('ng', QuizOptionNG);
@@ -1140,13 +1136,7 @@ module.exports = function(DORA, config) {
   function QuizOptionNGImage(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      let message = options;
-      if (isTemplated) {
-          message = utils.mustache.render(message, msg);
-      }
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, });
-      node.send(msg);
+      QuizNGImage(node, msg, options, isTemplated);
     });
   }
   DORA.registerType('ng.image', QuizOptionNGImage);
