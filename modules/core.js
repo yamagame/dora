@@ -891,7 +891,7 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      if (message.trim() == msg.payload.trim()) {
+      if (message.trim() == msg.payload.toString().trim()) {
         node.jump(msg);
       } else {
         node.next(msg);
