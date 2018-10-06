@@ -10,6 +10,27 @@ const {
 } = require('./quiz');
 
 module.exports = function(DORA, config) {
+
+  /**
+   *
+   *
+   */
+  function QuizNow(node, options) {
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      var now = new Date();
+      msg.now = {
+        year: now.getFullYear(),
+        month: now.getMonth()+1,
+        date: now.getDate(),
+        hours: now.getHours(),
+        minutes: now.getMinutes(),
+      }
+      node.send(msg);
+    });
+  }
+  DORA.registerType('now', QuizNow);
+
   /*
    *
    *
