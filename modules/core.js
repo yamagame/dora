@@ -1057,7 +1057,7 @@ module.exports = function(DORA, config) {
    */
   function CoreCall(node, options) {
     node.options = options
-    node.on("input", function(msg) {
+    node.on("input", async function(msg) {
       const opt = {}
       Object.keys(node.flow.options).forEach( key => {
         opt[key] = node.flow.options[key]; 
@@ -1065,7 +1065,8 @@ module.exports = function(DORA, config) {
       opt.range = {
         start: 0,
       }
-      node.dora.play(msg, opt, (err, msg) => {
+      const dora = await node.dora();
+      dora.play(msg, opt, (err, msg) => {
         if (err) node.err(new Error('再生エラー。'));
         node.send(msg);
       });

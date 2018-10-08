@@ -217,15 +217,18 @@ class Dora {
     for (var i=0;i<this.nodes.length;i++) {
       const node = this.nodes[i];
       if (node.name == 'call') {
-        node.dora = new Dora(this.config);
-        modules.forEach( m => {
-          node.dora._modname = m.name;
-          m.mod(node.dora, m.config);
-        });
-        const filename = node.options;
-        const script = await this.load(filename, loader);
-        await node.dora.parse(script, filename, loader);
-        node.dora.flow.parentFlow = this.flow;
+        node.dora = async () => {
+          const dora = new Dora(this.config);
+          modules.forEach( m => {
+            dora._modname = m.name;
+            m.mod(dora, m.config);
+          });
+          const filename = node.options;
+          const script = await this.load(filename, loader);
+          await dora.parse(script, filename, loader);
+          dora.flow.parentFlow = this.flow;
+          return dora;
+        }
       }
     }
     this.loader = loader;
