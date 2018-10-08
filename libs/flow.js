@@ -1,3 +1,5 @@
+const utils = require('./utils');
+
 class Flow extends Array {
   constructor(engine, config){
     super();
@@ -18,12 +20,14 @@ class Flow extends Array {
 
   exec() {
     const t = [];
+    const m = [];
     for (var i=0;i<this.execNodes.length;i++) {
       t.push(this.execNodes[i]);
+      m.push(utils.clone(this.execNodes[i].msg));
     }
     this.execNodes = [];
     for (var i=0;i<t.length;i++) {
-      t[i].node.emit('input', t[i].msg);
+      t[i].node.emit('input', m[i], m[i].stack);
     }
   }
 

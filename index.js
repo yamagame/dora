@@ -7,7 +7,6 @@ const LED = require('./modules/led');
 
 const utils = require("./libs/utils");
 const util = require("util");
-const clone = require("clone");
 
 const modules = [];
 
@@ -237,6 +236,11 @@ class Dora {
       if (callback) callback(null, msg);
       return;
     }
+    const labels = msg.labels;
+    const _callback = (info, msg) => {
+      msg.labels = labels;
+      if (callback) callback(info, msg);
+    }
     const { script } = msg;
     const { socket } = this.flow.options;
     const dora = new Dora(config);
@@ -246,7 +250,7 @@ class Dora {
     });
     const s = (typeof script === 'string') ? script : script.join('\n');
     if (s === '') {
-      if (callback) callback(null, msg);
+      _callback(null, msg);
       return;
     }
     await dora.parse(s, this.loader);
@@ -258,12 +262,15 @@ class Dora {
       socket,
     }
     dora.callback = (err, msg) => {
-      if (callback) callback(err, msg);
+      _callback(err, msg);
     }
     dora.flow.run(dora.nodes[0], msg);
   }
 
   play(msg, options, callback) {
+    if (!('stack' in msg)) {
+      msg.stack = [];
+    }
     if (!('credential' in this)) {
       this.credential = {};
     }
@@ -271,7 +278,12 @@ class Dora {
     if (this.flow) {
       this.flow.stop();
     }
-    this.callback = callback;
+    const labels = msg.labels;
+    const _callback = (info, msg) => {
+      if (msg) msg.labels = labels;
+      if (callback) callback(info, msg);
+    }
+    this.callback = _callback;
     this.flow.options = options;
     const { range: {start, end} } = options;
     if (start) {
@@ -281,8 +293,7 @@ class Dora {
           code: '範囲実行エラー',
           reason: `無効な実行範囲です。開始行:${start} 終了行:${end}`,
         }
-        if (callback) callback(this._errorInfo, msg);
-        return;
+        return _callback(this._errorInfo, msg);
       }
       if (!this.nodes.some( v => {
         if (v.index == start) {
@@ -296,8 +307,7 @@ class Dora {
           code: '範囲実行エラー',
           reason: `${start}行がありません。`,
         }
-        if (callback) callback(this._errorInfo, msg);
-        return;
+        return _callback(this._errorInfo, msg);
       }
     } else {
       this.flow.run(this.nodes[0], msg);
@@ -327,11 +337,11 @@ class Dora {
         if (flow.runnode == 0 || flow.isRunning() == false) {
           flow.stop();
           delete msg._forks;
-          const m = clone(msg);
+          const m = utils.clone(msg);
           if (this.callback) this.callback(null, m);
         }
       } else {
-        const m = clone(msg);
+        const m = utils.clone(msg);
         node.up();
         flow.up();
         this.exec_node = node;
@@ -388,7 +398,7 @@ class Dora {
     if (flow.runnode == 0 || err || flow.isRunning() == false) {
       flow.stop();
       delete msg._forks;
-      const m = clone(msg);
+      const m = utils.clone(msg);
       if (this.callback) this.callback(err, m);
     }
   }

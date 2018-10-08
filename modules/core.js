@@ -1,6 +1,5 @@
 const utils = require('../libs/utils');
 const mecab = require('../libs/mecab');
-const clone = require('clone');
 const fetch = require('node-fetch');
 const {
   QuizOK,
@@ -160,6 +159,34 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function CoreGosub(node, options) {
+    if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
+    node.on("input", function(msg, stack) {
+      stack.push(node.wires[node.wires.length-1]);
+      node.jump(msg);
+    });
+  }
+  DORA.registerType('gosub', CoreGosub);
+
+  /*
+   *
+   *
+   */
+  function CoreReturn(node, options) {
+    node.on("input", function(msg, stack) {
+      if (stack.length <= 0) {
+        return node.err(new Error('gosubが呼ばれていません'));
+      }
+      node.wires = [stack.pop()];
+      node.send(msg);
+    });
+  }
+  DORA.registerType('return', CoreReturn);
+
+  /*
+   *
+   *
+   */
   function CoreGotoRandom(node, options) {
     if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
     node._counter = 0;
@@ -310,7 +337,7 @@ module.exports = function(DORA, config) {
           if (typeof msg.topicPriority !== 'undefined' && forks.priority < msg.topicPriority) {
             forks.priority = msg.topicPriority;
             forks.name = msg.topic;
-            forks.msg = clone(msg);
+            forks.msg = utils.clone(msg);
             if (forks.node) {
               const n = forks.node;
               forks.node = node;
@@ -647,7 +674,7 @@ module.exports = function(DORA, config) {
       const v1 = getField(msg, p1);
       const v2 = getField(msg, p2);
       if (v1 && v2) {
-        v1.val[v1.key] = clone(v2.val[v2.key]);
+        v1.val[v1.key] = utils.clone(v2.val[v2.key]);
       }
       node.send(msg);
     });

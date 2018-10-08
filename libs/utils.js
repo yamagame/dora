@@ -1,3 +1,5 @@
+const clone = require('clone');
+
 const timeout = ms => new Promise(res => setTimeout(res, ms))
 
 const generateId = () => (1+Math.random()*4294967295).toString(16)
@@ -73,6 +75,15 @@ const nGramCheck = function(str1, str2) {
   return 0;
 }
 
+const _clone = (obj) => {
+  const stack = obj.stack;
+  delete obj.stack;
+  const ret = clone(obj);
+  obj.stack = stack;
+  ret.stack = [...stack];
+  return ret;
+}
+
 module.exports = {
   timeout,
   generateId,
@@ -81,6 +92,7 @@ module.exports = {
   randInteger,
   quizObject,
   nGramCheck,
+  clone: _clone,
 }
 
 if (require.main === module) {

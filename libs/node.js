@@ -1,5 +1,5 @@
 var Emitter = require('component-emitter');
-const clone = require("clone");
+const utils = require('./utils');
 
 class Node extends Emitter {
   constructor(flow){
@@ -33,13 +33,13 @@ class Node extends Emitter {
   fork(msg) {
     const w = [];
     if (this.wires.length <= 1) {
-      const m = clone(msg);
+      const m = utils.clone(msg);
       //m.topic = this.wires[i].labelName;
       m.topicPriority = (typeof m.topicPriority !== 'undefined') ? m.topicPriority : 0;
       w.push(m);
     } else {
       for (var i=0;i<this.wires.length-1;i++) {
-        const m = clone(msg);
+        const m = utils.clone(msg);
         m.topic = this.wires[i].labelName;
         m.topicPriority = (typeof m.topicPriority !== 'undefined') ? m.topicPriority : 0;
         w.push(m);
@@ -85,6 +85,14 @@ class Node extends Emitter {
 
   goto(msg, labels) {
     return this.flow.goto(this, msg, labels);
+  }
+
+  toJSON(key) {
+    return {
+      line: this.line,
+      index: this.index,
+      name: this.name,
+    };
   }
 }
 
