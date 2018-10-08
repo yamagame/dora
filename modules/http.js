@@ -56,17 +56,21 @@ module.exports = function(DORA, config) {
             }
           } else {
             if (msg._httpErrorInterrupt && msg._httpErrorInterrupt.length > 0) {
-              msg.payload = {
+              msg.httpError = {
                 status: response.status,
                 statusText: response.statusText,
               }
               node.goto(msg, msg._httpErrorInterrupt);
               return;
+            } else {
+              msg.httpError = {
+                status: response.status,
+                statusText: response.statusText,
+              }
             }
           }
         } catch(err) {
-          console.log(err);
-          msg.payload = {
+          msg.httpError = {
             code: err.code,
             type: err.type,
             errno: err.errno,
@@ -111,17 +115,21 @@ module.exports = function(DORA, config) {
           } else {
             if (msg._httpErrorInterrupt && msg._httpErrorInterrupt.length > 0) {
               console.log(`${response}`);
-              msg.payload = {
+              msg.httpError = {
                 status: response.status,
                 statusText: response.statusText,
               }
               node.goto(msg, msg._httpErrorInterrupt);
               return;
+            } else {
+              msg.httpError = {
+                status: response.status,
+                statusText: response.statusText,
+              }
             }
           }
         } catch(err) {
-          console.log(err);
-          msg.payload = {
+          msg.httpError = {
             code: err.code,
             type: err.type,
             errno: err.errno,
