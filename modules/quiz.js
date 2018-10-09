@@ -380,6 +380,18 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function QuizOptionNGImage(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      QuizNGImage(node, msg, options, isTemplated);
+    });
+  }
+  DORA.registerType('ng.image', QuizOptionNGImage);
+
+  /**
+   *
+   *
+   */
   function QuizOption(key) {
     return function(node, options) {
       var isTemplated = (options||"").indexOf("{{") != -1;
@@ -401,18 +413,6 @@ module.exports = function(DORA, config) {
   DORA.registerType('option.fontScale', QuizOption('fontScale'));
   DORA.registerType('option.marginTop', QuizOption('marginTop'));
   DORA.registerType('option.reset', QuizOption('reset'));
-
-  /**
-   *
-   *
-   */
-  function QuizOptionNGImage(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
-      QuizNGImage(node, msg, options, isTemplated);
-    });
-  }
-  DORA.registerType('ng.image', QuizOptionNGImage);
 
   /**
    *
