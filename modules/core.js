@@ -299,12 +299,17 @@ module.exports = function(DORA, config) {
    *
    */
   function CorePush(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (!msg.stack) msg.stack = [];
-      if (options === null) {
-        options = msg.payload;
+      let message = options;
+      if (message === null) {
+        message = msg.payload;
       }
-      msg.stack.push(options);
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      msg.stack.push(message);
       node.send(msg);
     });
   }
