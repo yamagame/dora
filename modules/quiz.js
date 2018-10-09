@@ -51,8 +51,11 @@ module.exports = function(DORA, config) {
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
       var d = new Date();
-      console.log(d.getHours());
-      if (d.getHours()+1 >= 11) {
+      const hours = d.getHours()+1;
+      if (hours >= 18 && hours < 3) {
+        msg.quiz.greeting = 'こんばんわ';
+      } else
+      if (hours >= 11) {
         msg.quiz.greeting = 'こんにちは';
       } else {
         msg.quiz.greeting = 'おはようございます';
