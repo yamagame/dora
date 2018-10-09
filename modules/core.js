@@ -221,7 +221,7 @@ module.exports = function(DORA, config) {
    *
    *
    */
-  function CoreGotoSequece(node, options) {
+  function CoreGotoSequence(node, options) {
     if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
     node._counter = 0;
     node.on("input", function(msg) {
@@ -236,7 +236,8 @@ module.exports = function(DORA, config) {
       node.send(t);
     });
   }
-  DORA.registerType('goto.sequece', CoreGotoSequece);
+  DORA.registerType('goto.sequece', CoreGotoSequence);
+  DORA.registerType('goto.sequence', CoreGotoSequence);
 
   /*
    *
