@@ -1,4 +1,4 @@
-var Emitter = require('component-emitter');
+const Emitter = require('component-emitter');
 const utils = require('./utils');
 
 class Node extends Emitter {
