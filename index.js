@@ -271,8 +271,8 @@ class Dora {
   }
 
   play(msg, options, callback) {
-    if (!('stack' in msg)) {
-      msg.stack = [];
+    if (!('callstack' in msg)) {
+      msg.callstack = [];
     }
     if (!('credential' in this)) {
       this.credential = {};

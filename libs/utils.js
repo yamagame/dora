@@ -76,11 +76,11 @@ const nGramCheck = function(str1, str2) {
 }
 
 const _clone = (obj) => {
-  const stack = obj.stack;
-  delete obj.stack;
+  const callstack = obj.callstack;
+  delete obj.callstack;
   const ret = clone(obj);
-  obj.stack = stack;
-  ret.stack = [...stack];
+  obj.callstack = callstack;
+  ret.callstack = [...callstack];
   return ret;
 }
 

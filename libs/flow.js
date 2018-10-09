@@ -27,7 +27,7 @@ class Flow extends Array {
     }
     this.execNodes = [];
     for (var i=0;i<t.length;i++) {
-      t[i].node.emit('input', m[i], m[i].stack);
+      t[i].node.emit('input', m[i], m[i].callstack);
     }
   }
 
