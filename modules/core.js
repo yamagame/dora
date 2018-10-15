@@ -759,6 +759,7 @@ module.exports = function(DORA, config) {
       const params = {
         timeout: 30000,
         sensitivity: 'keep',
+        level: 'keep',
       };
       if (typeof msg.timeout !== 'undefined') {
         params.timeout = msg.timeout;
@@ -772,6 +773,9 @@ module.exports = function(DORA, config) {
         }
         if (typeof msg.voice.sensitivity !== 'undefined') {
           params.sensitivity = msg.voice.sensitivity;
+        }
+        if (typeof msg.voice.level !== 'undefined') {
+          params.level = msg.voice.level;
         }
         if (typeof msg.voice.languageCode !== 'undefined') {
           params.languageCode = msg.voice.languageCode.split('/');
