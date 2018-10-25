@@ -1,4 +1,5 @@
 const utils = require('../libs/utils');
+const path = require('path');
 
 function QuizButton(type, node, msg, options, isTemplated) {
   if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
@@ -146,12 +147,23 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      await node.flow.request({
-        type: 'quiz',
-        action: 'slide',
-        photo: `${message}`,
-        pages: [],
-      });
+      if (path.extname(message.toLowerCase()) == '.json') {
+        await node.flow.request({
+          type: 'quiz',
+          action: 'slide',
+          photo: `${message}`,
+          pages: [],
+          area: `${message}`,
+        });
+      } else {
+        await node.flow.request({
+          type: 'quiz',
+          action: 'slide',
+          photo: `${message}`,
+          pages: [],
+          area: null,
+        });
+      }
       node.send(msg);
     });
   }
