@@ -84,6 +84,13 @@ const _clone = (obj) => {
   return ret;
 }
 
+function getParam(param, key, def) {
+  if (param && key in param) {
+    return param[key];
+  }
+  return def;
+}
+
 module.exports = {
   timeout,
   generateId,
@@ -93,6 +100,7 @@ module.exports = {
   quizObject,
   nGramCheck,
   clone: _clone,
+  getParam,
 }
 
 if (require.main === module) {

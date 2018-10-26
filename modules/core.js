@@ -933,6 +933,40 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function CoreDoraChat(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      const { socket } = node.flow.options;
+      var action = options;
+      if (isTemplated) {
+        action = utils.mustache.render(action, msg);
+      }
+      var message = msg.payload;
+      const params = {
+        sheetId: utils.getParam(msg.chat, 'sheetId', ''),
+        sheetName: utils.getParam(msg.chat, 'sheetName', ''),
+        download: utils.getParam(msg.chat, 'download', 'auto'),
+        useMecab: utils.getParam(msg.chat, 'useMecab', 'true'),
+        action,
+      };
+      socket.emit('dora-chat', {
+        message,
+        ...params,
+        ...this.credential(),
+      }, (res) => {
+        msg.payload = res.answer;
+        if (!msg.chat) msg.chat = {};
+        msg.chat.result = res;
+        node.next(msg);
+      });
+    });
+  }
+  DORA.registerType('dora-chat', CoreDoraChat);
+
+  /*
+   *
+   *
+   */
   function CoreSwitch(node, options) {
     const params = options.split('/');
     var string = params[0];
@@ -1284,4 +1318,29 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('append-to-google-sheet', AppendToGoogleSheet);
+
+  /*
+   * 値を変換する
+   *
+   */
+  function Convert(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      let message = options || msg.payload;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      let p = message.split('/');
+      let command = p.shift();
+      message = p.join('/');
+      if (command === 'encodeURIComponent') {
+        msg.payload = encodeURIComponent(message);
+      }
+      if (command === 'decodeURIComponent') {
+        msg.payload = decodeURIComponent(message);
+      }
+      node.next(msg);
+    })
+  }
+  DORA.registerType('convert', Convert);
 }
