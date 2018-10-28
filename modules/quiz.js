@@ -42,6 +42,17 @@ function QuizNGImage(node, msg, options, isTemplated) {
   QuizButton('ng/image', node, msg, options, isTemplated);
 }
 
+function QuizCategory(node, msg, options, isTemplated) {
+  if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+  let category = options;
+  if (isTemplated) {
+      category = utils.mustache.render(category, msg);
+  }
+  const page = msg.quiz.pages[msg.quiz.pages.length-1];
+  page.category = category;
+  node.send(msg);
+}
+
 module.exports = function(DORA, config) {
 
   /**
@@ -351,6 +362,18 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('answer', QuizAnswer);
+
+  /**
+   *
+   *
+   */
+  function QuizOptionCategory(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      QuizCategory(node, msg, options, isTemplated);
+    });
+  }
+  DORA.registerType('category', QuizOptionCategory);
 
   /**
    *
@@ -672,18 +695,27 @@ module.exports = function(DORA, config) {
   DORA.registerType('quizPage', QuizQuizPage);
 
   /**
-   *
+   *  options: hide-result-message resultMessageを表示しない
+   *           minute-mode 残り時間を分単位で表示
+   *           radar-chart レーダーチャートを表示する
    *
    */
   function QuizLastPage(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      const lastPage = msg.quiz.pages[msg.quiz.pages.length-1];
+      var option = options || '';
+      if (isTemplated) {
+          option = utils.mustache.render(option, msg);
+      }
+      option = option.split('/');
       //ラストページに結果表示画面を追加
+      const lastPage = msg.quiz.pages[msg.quiz.pages.length-1];
       if (lastPage.action !== 'result') {
         msg.quiz.pages.push({
           action: 'result',
           title: 'しばらくお待ちください',
+          options: option,
         });
       }
       node.send(msg);
@@ -796,7 +828,11 @@ module.exports = function(DORA, config) {
   function QuizResult(node, options) {
     let pageNumber = null;
     if (options !== null) {
-      pageNumber = parseInt(options);
+      if (options === 'last') {
+        pageNumber = options;
+      } else {
+        pageNumber = parseInt(options);
+      }
     }
     node.on("input", async function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
@@ -829,20 +865,23 @@ module.exports = function(DORA, config) {
           pageNumber: pages.length-1,
         });
       } else {
-        await node.flow.request('command', {
-          restype: 'text',
-        }, {
-          type: 'quiz',
-          action: 'quiz-answer',
-          pageNumber,
-        });
-        await node.flow.request('command', {
-            restype: 'text',
-          }, {
-          type: 'quiz',
-          action: 'quiz-answer',
-          pageNumber,
-        });
+        if (pageNumber === 'last') {
+          await node.flow.request('command', {
+              restype: 'text',
+            }, {
+            type: 'quiz',
+            action: 'quiz-answer',
+            pageNumber: pages.length-1,
+          });
+        } else {
+          await node.flow.request('command', {
+              restype: 'text',
+            }, {
+            type: 'quiz',
+            action: 'quiz-answer',
+            pageNumber,
+          });
+        }
       }
       node.send(msg);
     });
@@ -1242,3 +1281,4 @@ module.exports.QuizOK = QuizOK;
 module.exports.QuizNG = QuizNG;
 module.exports.QuizOKImage = QuizOKImage;
 module.exports.QuizNGImage = QuizNGImage;
+module.exports.QuizCategory = QuizCategory;

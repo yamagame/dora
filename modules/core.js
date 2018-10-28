@@ -6,6 +6,7 @@ const {
   QuizOKImage,
   QuizNG,
   QuizNGImage,
+  QuizCategory,
 } = require('./quiz');
 
 module.exports = function(DORA, config) {
@@ -1185,6 +1186,18 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('select.layout', QuizSelectLayout);
+
+  /**
+   *
+   *
+   */
+  function QuizOptionCategory(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      QuizCategory(node, msg, options, isTemplated);
+    });
+  }
+  DORA.registerType('category', QuizOptionCategory);
 
   /*
    *
