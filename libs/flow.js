@@ -59,8 +59,8 @@ class Flow extends Array {
     this.runnode --;
   }
 
-  nextLabel(node, label) {
-    return this.engine.nextLabel(node, label);
+  nextLabel(node, label, index=0) {
+    return this.engine.nextLabel(node, label, index);
   }
 
   goto(node, msg, labels) {

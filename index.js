@@ -1,6 +1,7 @@
 const Flow = require('./libs/flow');
 const Node = require('./libs/node');
 const Core = require('./modules/core');
+const Operation = require('./modules/Operation');
 const Quiz = require('./modules/quiz');
 const HTTP = require('./modules/http');
 const LED = require('./modules/led');
@@ -21,6 +22,8 @@ class Dora {
     this.global = {};
     this._modname = 'core';
     Core(this);
+    this._modname = 'op';
+    Operation(this);
     this._modname = 'quiz';
     Quiz(this);
     this._modname = 'http';
@@ -406,11 +409,12 @@ class Dora {
     }
   }
 
-  nextLabel(node, label) {
+  nextLabel(node, label, index=0) {
     if (typeof label === 'undefined' || label === null) return [];
     if (!util.isArray(label)) {
       label = label.split('/');
     }
+    label = label.slice(index);
     var numLabels = label.length;
     for (var i = 0; i < numLabels; i++) {
       const _label = label[i].trim();
