@@ -114,7 +114,6 @@ module.exports = function(DORA, config) {
             }
           } else {
             if (msg._httpErrorInterrupt && msg._httpErrorInterrupt.length > 0) {
-              console.log(`${response}`);
               msg.httpError = {
                 status: response.status,
                 statusText: response.statusText,
@@ -154,7 +153,11 @@ module.exports = function(DORA, config) {
     const labels = node.nextLabel(options);
     if (labels.length <= 0) throw new Error('ラベルを指定してください。')
     node.on("input", async function(msg) {
-      msg._httpErrorInterrupt = labels;
+      if (options) {
+        msg._httpErrorInterrupt = labels;
+      } else {
+        delete msg._httpErrorInterrupt;
+      }
       node.next(msg);
     });
   }
