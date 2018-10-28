@@ -490,14 +490,37 @@ module.exports = function(DORA, config) {
    *
    */
   function QuizImage(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      msg.quiz.pages[msg.quiz.pages.length-1].sideImage = { url: options };
+      let url = options;
+      if (isTemplated) {
+          url = utils.mustache.render(url, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].sideImage = { url, };
       node.send(msg);
     });
   }
   DORA.registerType('sideImage', QuizImage);
   DORA.registerType('image', QuizImage);
+
+  /**
+   *
+   *
+   */
+  function QuizIFrame(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let url = options;
+      if (isTemplated) {
+          url = utils.mustache.render(url, msg);
+      }
+      msg.quiz.pages[msg.quiz.pages.length-1].inlineFrame = { url, };
+      node.send(msg);
+    });
+  }
+  DORA.registerType('iframe', QuizIFrame);
 
   /**
    *
