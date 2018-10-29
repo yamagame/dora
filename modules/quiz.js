@@ -659,7 +659,7 @@ module.exports = function(DORA, config) {
         options: option.split('/'),
       });
       msg.showSum = false;
-      console.log(payload);
+      // console.log(payload);
       msg.quiz.startTime = payload;
       msg.quiz.quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
       node.send(msg);
@@ -690,7 +690,7 @@ module.exports = function(DORA, config) {
         options: option.split('/'),
       });
       msg.showSum = true;
-      console.log(payload);
+      // console.log(payload);
       msg.quiz.startTime = payload;
       msg.quiz.quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
       node.send(msg);
@@ -938,7 +938,7 @@ module.exports = function(DORA, config) {
           }
         });
       }
-      console.log(msg.quiz.quizAnswers);
+      // console.log(msg.quiz.quizAnswers);
       var debugCount = 0;
       const quizCount = msg.quiz.pages.filter( a => a.action == 'quiz').length;
       Object.keys(msg.quiz.quizAnswers).forEach( question => {
@@ -974,9 +974,7 @@ module.exports = function(DORA, config) {
       msg.quizCount = quizCount;
       msg.ranking = ranking;
       msg.debugCount = debugCount;
-
-      console.log(ranking);
-
+      // console.log(ranking);
       if (ranking.length === 0) {
           node.send([msg, null]);
       } else {
@@ -1060,13 +1058,10 @@ module.exports = function(DORA, config) {
           return okCount*100/totalCount;
         }
       }
-
-      console.log(JSON.stringify(sumQuestions));
-      console.log(`okCount:${okCount} total:${totalCount}`);
-
+      // console.log(JSON.stringify(sumQuestions));
+      // console.log(`okCount:${okCount} total:${totalCount}`);
       msg.okCount = okCount;
       msg.totalCount = totalCount;
-
       if ((threshold !== null && rate() >= threshold) || (threshold === null && rate() > 0)) {
         node.jump(msg);
       } else {
