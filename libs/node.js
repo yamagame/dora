@@ -79,8 +79,20 @@ class Node extends Emitter {
     this._act --;
   }
 
+  stop() {
+    this._act = 0;
+  }
+
+  isAlive() {
+    return (this._act != 0);
+  }
+
   nextLabel(label, index=0) {
     return this.flow.nextLabel(this, label, index);
+  }
+
+  join() {
+    return this.flow.join(this);
   }
 
   goto(msg, labels) {

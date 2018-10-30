@@ -925,6 +925,23 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function JoinFlow(node, options) {
+    node.on("input", function(msg) {
+      const { socket } = node.flow.options;
+      socket.emit('stop-speech', {
+        ...this.credential(),
+      }, (res) => {
+        node.join();
+        node.next(msg);
+      });
+    });
+  }
+  DORA.registerType('join-flow', JoinFlow);
+
+  /*
+   *
+   *
+   */
   function CoreChat(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {

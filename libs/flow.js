@@ -1,8 +1,7 @@
 const utils = require('./utils');
 
-class Flow extends Array {
+class Flow {
   constructor(engine, config){
-    super();
     this.engine = engine;
     this.runnode = 0;
     this.running = false;
@@ -26,9 +25,13 @@ class Flow extends Array {
       m.push(utils.clone(this.execNodes[i].msg));
     }
     this.execNodes = [];
-    for (var i=0;i<t.length;i++) {
-      t[i].node.emit('input', m[i], m[i].callstack);
-    }
+    setTimeout(() => {
+      for (var i=0;i<t.length;i++) {
+        if (t[i].node.isAlive()) {
+          t[i].node.emit('input', m[i], m[i].callstack);
+        }
+      }
+    }, 1);
   }
 
   stop(err) {
@@ -65,6 +68,10 @@ class Flow extends Array {
 
   goto(node, msg, labels) {
     return this.engine.goto(this, node, msg, labels);
+  }
+
+  join(node) {
+    this.engine.join(this, node);
   }
 
   isRunning() {

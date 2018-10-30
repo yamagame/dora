@@ -66,7 +66,6 @@ class Dora {
       this.exec_node = node;
       node.line = (lineObj.code) ? lineObj.code : lineObj.out;
       node.index = index;
-      flow.push(node);
       //コメント行
       if (line.indexOf('//') === 0) {
         this.types['comment'](node)
@@ -374,6 +373,14 @@ class Dora {
       }
     }
     flow.exec();
+  }
+
+  join(flow, node) {
+    for (var i in this.nodes) {
+      this.nodes[i].stop();
+    }
+    node.up();
+    flow.runnode = 1;
   }
 
   goto(flow, node, msg, labels) {
