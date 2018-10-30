@@ -909,6 +909,22 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function StopSpeech(node, options) {
+    node.on("input", function(msg) {
+      const { socket } = node.flow.options;
+      socket.emit('stop-speech', {
+        ...this.credential(),
+      }, (res) => {
+        node.next(msg);
+      });
+    });
+  }
+  DORA.registerType('stop-speech', StopSpeech);
+
+  /*
+   *
+   *
+   */
   function CoreChat(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
