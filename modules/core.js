@@ -741,6 +741,7 @@ module.exports = function(DORA, config) {
           ...params,
           ...this.credential(),
         }, (res) => {
+          if (!node.isAlive()) return;
           msg.payload = message;
           node.send(msg);
         });
@@ -788,6 +789,7 @@ module.exports = function(DORA, config) {
         ...this.credential(),
       }, (res) => {
         if (!node.recording) return;
+        if (!node.isAlive()) return;
         node.recording = false;
         if (res == '[timeout]') {
           msg.payload = 'timeout';
@@ -858,6 +860,7 @@ module.exports = function(DORA, config) {
         ...this.credential(),
       }, (res) => {
         if (!node.recording) return;
+        if (!node.isAlive()) return;
         node.recording = false;
         if (res == '[timeout]') {
           msg.payload = 'timeout';
@@ -915,6 +918,7 @@ module.exports = function(DORA, config) {
       socket.emit('stop-speech', {
         ...this.credential(),
       }, (res) => {
+        if (!node.isAlive()) return;
         node.next(msg);
       });
     });
@@ -931,6 +935,7 @@ module.exports = function(DORA, config) {
       socket.emit('stop-speech', {
         ...this.credential(),
       }, (res) => {
+        if (!node.isAlive()) return;
         node.join();
         node.next(msg);
       });
@@ -955,6 +960,7 @@ module.exports = function(DORA, config) {
         silence: true,
         ...this.credential(),
       }, (res) => {
+        if (!node.isAlive()) return;
         msg.payload = res;
         node.next(msg);
       });
@@ -988,6 +994,7 @@ module.exports = function(DORA, config) {
         ...params,
         ...this.credential(),
       }, (res) => {
+        if (!node.isAlive()) return;
         msg.payload = res.answer;
         if (!msg.chat) msg.chat = {};
         msg.chat.result = res;
@@ -1146,6 +1153,7 @@ module.exports = function(DORA, config) {
       const dora = await node.dora();
       dora.play(msg, opt, (err, msg) => {
         if (err) node.err(new Error('再生エラー。'));
+        if (!node.isAlive()) return;
         node.send(msg);
       });
     });
@@ -1287,6 +1295,7 @@ module.exports = function(DORA, config) {
   function QuizRun(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
+      if (!node.isAlive()) return;
       let nextscript = options || msg.payload;
       if (isTemplated) {
           nextscript = utils.mustache.render(nextscript, msg);

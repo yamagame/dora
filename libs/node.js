@@ -23,6 +23,7 @@ class Node extends Emitter {
   }
 
   send(msg) {
+    if (!this.isAlive()) return;
     this.flow.send(this, msg);
   }
 
