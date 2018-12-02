@@ -80,7 +80,9 @@ const _clone = (obj) => {
   delete obj.callstack;
   const ret = clone(obj);
   obj.callstack = callstack;
-  ret.callstack = [...callstack];
+  if (callstack) {
+    ret.callstack = [...callstack];
+  }
   return ret;
 }
 
