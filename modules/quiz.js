@@ -7,21 +7,23 @@ function QuizButton(type, node, msg, options, isTemplated) {
   if (isTemplated) {
       message = utils.mustache.render(message, msg);
   }
-  const page = msg.quiz.pages[msg.quiz.pages.length-1];
-  const params = {
-    value: message,
-  }
-  if (type.indexOf('image') >= 0) {
-    params.image = message;
-  }
-  if ('quizOptions' in msg) {
-    const options = msg.quizOptions;
-    if ('fontScale' in options) params.fontScale = options.fontScale;
-    if ('marginTop' in options) params.marginTop = options.marginTop;
-  }
-  page.choices.push(params);
-  if (type.indexOf('ok') >= 0) {
-    page.answers.push(message);
+  if (msg.quiz.pages.length > 0) {
+    const page = msg.quiz.pages[msg.quiz.pages.length-1];
+    const params = {
+      value: message,
+    }
+    if (type.indexOf('image') >= 0) {
+      params.image = message;
+    }
+    if ('quizOptions' in msg) {
+      const options = msg.quizOptions;
+      if ('fontScale' in options) params.fontScale = options.fontScale;
+      if ('marginTop' in options) params.marginTop = options.marginTop;
+    }
+    page.choices.push(params);
+    if (type.indexOf('ok') >= 0) {
+      page.answers.push(message);
+    }
   }
   node.send(msg);
 }
@@ -373,7 +375,9 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           layout = utils.mustache.render(layout, msg);
       }
-      msg.quiz.pages[msg.quiz.pages.length-1].layout = layout;
+      if (msg.quiz.pages.length > 0) {
+        msg.quiz.pages[msg.quiz.pages.length-1].layout = layout;
+      }
       node.send(msg);
     });
   }
@@ -391,7 +395,9 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      msg.quiz.pages[msg.quiz.pages.length-1].selects.push(message);
+      if (msg.quiz.pages.length > 0) {
+        msg.quiz.pages[msg.quiz.pages.length-1].selects.push(message);
+      }
       node.send(msg);
     });
   }
@@ -495,7 +501,9 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, type: 'option', });
+      if (msg.quiz.pages.length > 0) {
+        msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, type: 'option', });
+      }
       node.send(msg);
     });
   }
@@ -513,7 +521,9 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, type: 'option', });
+      if (msg.quiz.pages.length > 0) {
+        msg.quiz.pages[msg.quiz.pages.length-1].choices.push({ value: message, image: message, type: 'option', });
+      }
       node.send(msg);
     });
   }
@@ -531,7 +541,9 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           url = utils.mustache.render(url, msg);
       }
-      msg.quiz.pages[msg.quiz.pages.length-1].sideImage = { url, };
+      if (msg.quiz.pages.length > 0) {
+        msg.quiz.pages[msg.quiz.pages.length-1].sideImage = { url, };
+      }
       node.send(msg);
     });
   }
@@ -550,7 +562,9 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           url = utils.mustache.render(url, msg);
       }
-      msg.quiz.pages[msg.quiz.pages.length-1].inlineFrame = { url, };
+      if (msg.quiz.pages.length > 0) {
+        msg.quiz.pages[msg.quiz.pages.length-1].inlineFrame = { url, };
+      }
       node.send(msg);
     });
   }
@@ -767,13 +781,15 @@ module.exports = function(DORA, config) {
       }
       option = option.split('/');
       //ラストページに結果表示画面を追加
-      const lastPage = msg.quiz.pages[msg.quiz.pages.length-1];
-      if (lastPage.action !== 'result') {
-        msg.quiz.pages.push({
-          action: 'result',
-          title: 'しばらくお待ちください',
-          options: option,
-        });
+      if (msg.quiz.pages.length > 0) {
+        const lastPage = msg.quiz.pages[msg.quiz.pages.length-1];
+        if (lastPage.action !== 'result') {
+          msg.quiz.pages.push({
+            action: 'result',
+            title: 'しばらくお待ちください',
+            options: option,
+          });
+        }
       }
       node.send(msg);
     });
@@ -1283,10 +1299,14 @@ module.exports = function(DORA, config) {
           type: 'movie',
           action: 'check',
         })
-        if (res.state === 'play') {
+        try {
+          if (res.state === 'play') {
+            node.jump(msg);
+          } else {
+            node.next(msg);
+          }
+        } catch(err) {
           node.jump(msg);
-        } else {
-          node.next(msg);
         }
       }, 1000);
     });

@@ -135,7 +135,7 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      if (msg.payload.indexOf(message) >= 0) {
+      if (typeof msg.payload !== 'undefined' && msg.payload.indexOf(message) >= 0) {
         node.jump(msg);
       }　else {
         node.next(msg);
@@ -1222,7 +1222,9 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           layout = utils.mustache.render(layout, msg);
       }
-      msg.quiz.pages[msg.quiz.pages.length-1].layout = layout;
+      if (msg.quiz.pages.length > 0) {
+        msg.quiz.pages[msg.quiz.pages.length-1].layout = layout;
+      }
       node.send(msg);
     });
   }
@@ -1301,7 +1303,7 @@ module.exports = function(DORA, config) {
           nextscript = utils.mustache.render(nextscript, msg);
       }
       nextscript = nextscript.trim();
-      console.log(`nextscript ${nextscript}`);
+      //console.log(`nextscript ${nextscript}`);
       if (nextscript.indexOf('http') == 0) {
         const res = await node.flow.request({
           type: 'scenario',
@@ -1309,7 +1311,7 @@ module.exports = function(DORA, config) {
           uri: nextscript,
           username: msg.username,
         });
-        console.log(`res ${JSON.stringify(res)}`);
+        //console.log(`res ${JSON.stringify(res)}`);
         msg._nextscript = res.next_script;
       } else {
         msg._nextscript = nextscript;

@@ -76,6 +76,7 @@ const nGramCheck = function(str1, str2) {
 }
 
 const _clone = (obj) => {
+  if (typeof obj === 'undefined') return null;
   const callstack = obj.callstack;
   delete obj.callstack;
   const ret = clone(obj);
