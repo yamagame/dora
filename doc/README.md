@@ -85,7 +85,7 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
 
       /log/Hello
 
-  console.log()を使ってログを出力します。
+  console.log()を使ってログを出力します。ブラウザのデベロッパーツールのコンソールに出力されます。
 
       /log/{{{payload}}
 
@@ -700,6 +700,101 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /led.blink
 
   LEDボタンを点滅させます。
+
+## Operation Module
+
+- op.add
+
+      /.payload/10
+      /op.add/100
+
+    payloadに指定した値を加算する。
+
+- op.sub
+
+      /.payload/10
+      /op.sub/5
+
+    payloadから指定した値を減算する。
+
+- op.mul
+
+      /.payload/10
+      /op.mul/2
+
+    payloadに指定した値を乗算する。
+
+- op.div
+
+      /.payload/15
+      /op.div/3
+
+    payloadに指定した値を除算する。
+
+- op.inc
+
+      /.payload/10
+      /op.inc
+
+    payloadに1加算する。
+
+- op.dec
+
+      /.payload/10
+      /op.dec
+
+      payloadに1減算する。
+
+- op.toInt
+
+      /.payload/10
+      /op.toInt
+
+    payloadの値を整数にする。
+
+- op.toFloat
+
+      /.payload/10.123
+      /op.toFloat
+
+    payloadの値を浮動小数にする。
+
+- op.==
+
+      /op.==/100/:ラベル
+
+    payloadの値が指定した値ならラベルへ遷移する。
+
+- op.!=
+
+      /op.!=/100/:ラベル
+
+    payloadの値が指定した値でなければラベルへ遷移する。
+
+- op.>=
+
+      /op.>=/100/:ラベル
+
+    payloadの値が指定した値以上ならラベルへ遷移する。
+
+- op.<=
+
+      /op.<=/100/:ラベル
+
+    payloadの値が指定した値以下ならラベルへ遷移する。
+
+- op.>
+
+      /op.>/100/:ラベル
+
+    payloadの値が指定した値より大きいならラベルへ遷移する。
+
+- op.<
+
+      /op.</100/:ラベル
+
+    payloadの値が指定した値より小さいならラベルへ遷移する。
+
 
 ## カスタムモジュールの追加方法
 

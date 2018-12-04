@@ -184,6 +184,40 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function QuizEdit(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      let message = options;
+      if (isTemplated) {
+          message = utils.mustache.render(message, msg);
+      }
+      if (path.extname(message.toLowerCase()) == '.json') {
+        await node.flow.request({
+          type: 'quiz',
+          action: 'edit',
+          photo: `${message}`,
+          pages: [],
+          area: `${message}`,
+        });
+      } else {
+        await node.flow.request({
+          type: 'quiz',
+          action: 'edit',
+          photo: `${message}`,
+          pages: [],
+          area: `${message}.json`,
+        });
+      }
+      node.send(msg);
+    });
+  }
+  DORA.registerType('edit', QuizEdit);
+
+  /**
+   *
+   *
+   */
   function QuizPreload(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {

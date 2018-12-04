@@ -168,7 +168,7 @@ class Dora {
 
   preprocessor(script) {
     const r = [];
-    const t = script.split('\n').map( (v,i) => {
+    const t = script.split('\r\n').join('\n').split('\n').map( (v,i) => {
       if (v === '' && i > 0) {
         return '/0s';
       }
