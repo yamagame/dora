@@ -135,7 +135,7 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      if (typeof msg.payload !== 'undefined' && msg.payload.indexOf(message) >= 0) {
+      if (typeof msg.payload !== 'undefined' && msg.payload.toString().indexOf(message) >= 0) {
         node.jump(msg);
       }　else {
         node.next(msg);
