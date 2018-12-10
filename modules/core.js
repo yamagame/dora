@@ -809,6 +809,12 @@ module.exports = function(DORA, config) {
             delete res.button;
             node.send(msg);
           } else
+          if (res.gamepad) {
+            msg.payload = 'gamepad';
+            msg.gamepad = res;
+            delete res.gamepad;
+            node.send(msg);
+          } else
           if (res.speechRequest) {
             msg.speechRequest = true;
             msg.payload = res.payload;
@@ -878,6 +884,12 @@ module.exports = function(DORA, config) {
             msg.payload = 'button';
             msg.button = res;
             delete res.button;
+            node.send(msg);
+          } else
+          if (res.gamepad) {
+            msg.payload = 'gamepad';
+            msg.gamepad = res;
+            delete res.gamepad;
             node.send(msg);
           } else
           if (res.speechRequest) {
