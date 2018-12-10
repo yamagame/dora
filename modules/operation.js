@@ -1,4 +1,5 @@
 const utils = require('../libs/utils');
+const Buffer = require('buffer').Buffer;
 
 function ToNumber(v) {
   if (typeof v === 'string') {
@@ -66,6 +67,50 @@ function Dec(node, msg, options, isTemplated) {
     msg.payload = ToNumber(msg.payload);
   }
   msg.payload --;
+  node.send(msg);
+}
+
+function LogicOp(node, msg, options, isTemplated, func) {
+  let a = msg.payload;
+  let b = GetOption(options, isTemplated, msg);
+  if (typeof a === 'undefined' || typeof b === 'undefined') {
+    node.err(new Error('operation error'));
+    return;
+  }
+  a = Buffer.from(a.toString(), 'hex');
+  b = Buffer.from(b.toString(), 'hex');
+  for (var i=0;i<a.length&&i<b.length;i++) {
+    const at = a.readUInt8(i);
+    const bt = b.readUInt8(i);
+    a.writeUInt8(func(at, bt) & 0xFF, i);
+  }
+  msg.payload = a.toString('hex').toUpperCase();
+  node.send(msg);
+}
+
+function And(node, msg, options, isTemplated) {
+  LogicOp(node, msg, options, isTemplated, (a, b) => a & b);
+}
+
+function Or(node, msg, options, isTemplated) {
+  LogicOp(node, msg, options, isTemplated, (a, b) => a | b);
+}
+
+function XOr(node, msg, options, isTemplated) {
+  LogicOp(node, msg, options, isTemplated, (a, b) => a ^ b);
+}
+
+function Not(node, msg, options, isTemplated) {
+  let a = msg.payload;
+  if (typeof a === 'undefined') {
+    node.err(new Error('operation error'));
+    return;
+  }
+  a = Buffer.from(a.toString(), 'hex');
+  for (var i=0;i<a.length;i++) {
+    a.writeUInt8((~ a.readUInt8(i)) & 0xFF, i);
+  }
+  msg.payload = a.toString('hex').toUpperCase();
   node.send(msg);
 }
 
@@ -172,6 +217,54 @@ module.exports = function(DORA, config) {
     })
   }
   DORA.registerType('dec', OpDec);
+
+  /*
+   *
+   *
+   */
+  function OpAnd(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      And(node, msg, options, isTemplated);
+    })
+  }
+  DORA.registerType('and', OpAnd);
+
+  /*
+   *
+   *
+   */
+  function OpOr(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      Or(node, msg, options, isTemplated);
+    })
+  }
+  DORA.registerType('or', OpOr);
+
+  /*
+   *
+   *
+   */
+  function OpXOr(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      XOr(node, msg, options, isTemplated);
+    })
+  }
+  DORA.registerType('xor', OpXOr);
+
+  /*
+   *
+   *
+   */
+  function OpNot(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      Not(node, msg, options, isTemplated);
+    })
+  }
+  DORA.registerType('not', OpNot);
 
   /*
    *
