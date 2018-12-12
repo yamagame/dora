@@ -709,6 +709,9 @@ module.exports = function(DORA, config) {
         if (typeof msg.speech.volume !== 'undefined') {
           params.volume = msg.speech.volume;
         }
+        if (typeof msg.speech.voice !== 'undefined') {
+          params.voice = msg.speech.voice;
+        }
         //google text-to-speech向けパラメータ
         if (typeof msg.speech.languageCode !== 'undefined') {
           params.languageCode = msg.speech.languageCode;
@@ -1157,7 +1160,7 @@ module.exports = function(DORA, config) {
     node.on("input", async function(msg) {
       const opt = {}
       Object.keys(node.flow.options).forEach( key => {
-        opt[key] = node.flow.options[key]; 
+        opt[key] = node.flow.options[key];
       })
       opt.range = {
         start: 0,
