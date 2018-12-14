@@ -5,6 +5,7 @@ const Operation = require('./modules/operation');
 const Quiz = require('./modules/quiz');
 const HTTP = require('./modules/http');
 const LED = require('./modules/led');
+const BAR = require('./modules/bar');
 
 const utils = require("./libs/utils");
 const util = require("util");
@@ -30,6 +31,8 @@ class Dora {
     HTTP(this);
     this._modname = 'led';
     LED(this);
+    this._modname = 'bar';
+    BAR(this);
     this.utils = utils;
     this._errorInfo = {};
   }
