@@ -243,4 +243,51 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('delete', barDelete);
 
+  /*
+   *
+   *
+   */
+  function barMoveScreen(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      var uuid = options || ((typeof msg.bar !== 'object') ? null : msg.bar.uuid);
+      if (uuid) {
+        if (isTemplated) {
+            uuid = utils.mustache.render(uuid, msg);
+        }
+        var params = {
+          ...this.credential(),
+        }
+        function DayToString(d) {
+          return `${d.getFullYear()}-${('00'+(d.getMonth()+1)).slice(-2)}-${('00'+d.getDate()).slice(-2)}`;
+        }
+        if (uuid === 'today') {
+          params.time = DayToString(new Date());
+        } else {
+          const d = new Date(uuid);
+          if (d.toString() === 'Invalid Date') {
+            params.uuid = uuid;
+          } else {
+            params.time = DayToString(d);
+          }
+        }
+        var headers = {};
+        headers['Content-Type'] = 'application/json';
+        let response = await fetch(`http://${msg.dora.host}:${msg.dora.port}/bar/move-screen`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(params),
+        })
+        if (response.ok) {
+          var contentType = response.headers.get("content-type");
+          if(contentType && contentType.includes("application/json")) {
+            //
+          }
+        }
+      }
+      node.send(msg);
+    });
+  }
+  DORA.registerType('move.screen', barMoveScreen);
+
 }
