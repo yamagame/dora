@@ -74,7 +74,12 @@ module.exports = function(DORA, config) {
       if (response.ok) {
         var contentType = response.headers.get("content-type");
         if(contentType && contentType.includes("application/json")) {
-          msg.bar = await response.json();
+          const d = await response.json();
+          if (d.bars.length > 0) {
+            msg.bar = { ...d.bars[0], status: d.status, }
+          } else {
+            msg.bar = { status: d.status, }
+          }
         } else {
           console.log('ERROR');
         }
