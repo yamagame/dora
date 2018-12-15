@@ -15,8 +15,16 @@ const defaultBarData = {
 const unit = 24;
 const unitScale = 60*60*1000;
 
+function today() {
+  const date = new Date();
+  const y = date.getFullYear();
+  const m = date.getMonth();
+  const d = date.getDate();
+  return new Date(y, m, d);
+}
+
 function dayPosition(millisecond) {
-  return parseInt((millisecond/unitScale+unit/2)/unit)*unit;
+  return parseInt(millisecond/unitScale);
 }
 
 function barData(bar, uuid) {
@@ -33,7 +41,7 @@ function barData(bar, uuid) {
   }
   if (uuid) return t;
   if (typeof t.x === 'undefined') {
-    t.x = dayPosition((new Date()).getTime());
+    t.x = dayPosition(today().getTime());
   }
   if (typeof t.y === 'undefined') {
     t.y = 'auto';
@@ -104,7 +112,7 @@ module.exports = function(DORA, config) {
       }
       function getTime(time) {
         if (time === null) {
-          return dayPosition((new Date()).getTime());
+          return dayPosition(today().getTime());
         }
         return dayPosition((new Date(time)).getTime());
       }
@@ -125,7 +133,7 @@ module.exports = function(DORA, config) {
    */
   function barToday(node, options) {
     node.on("input", async function(msg) {
-      const d = dayPosition((new Date()).getTime())
+      const d = dayPosition(today().getTime())
       if (!msg.bar) msg.bar = {}
       msg.bar.x = d;
       node.send(msg);
@@ -267,7 +275,7 @@ module.exports = function(DORA, config) {
           return `${d.getFullYear()}-${('00'+(d.getMonth()+1)).slice(-2)}-${('00'+d.getDate()).slice(-2)}`;
         }
         if (uuid === 'today') {
-          params.time = DayToString(new Date());
+          params.time = DayToString(today());
         } else {
           const d = new Date(uuid);
           if (d.toString() === 'Invalid Date') {
