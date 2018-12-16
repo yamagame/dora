@@ -303,6 +303,14 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
 
       発話の声を変更します。デフォルトはreimuで、marisaに変更することができます。
 
+- silence / silence.end
+
+      /silence
+      こんにちは
+      /silence.end
+
+  /silenceと/silence.endに囲まれた部分は発話せず、発話内容をpayloadにテキストとして記録します。
+
 - speech-to-text
 
       /speech-to-text/:例外発生
@@ -815,6 +823,43 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
     payloadの値が指定した値より小さいならラベルへ遷移する。
 
+## Bar Module
+
+- bar.create
+
+  スケジューラにバーを作成します。
+
+- bar.update
+
+  指定したバーを更新します。
+
+- bar.time
+
+  作成するバーの時刻を指定します。
+
+- bar.find.title
+
+  タイトルを指定してバーを検索します。
+
+- bar.find.time
+
+  時間を指定してバーを検索します。
+
+- bar.eval.title
+
+  タイトルを指定してバーを検索し、検索して見つかったバーの内容をJavascriptとして実行します。
+
+- bar.eval.time
+
+  時間を指定してバーを検索し、検索して見つかったバーの内容をJavascriptとして実行します。
+
+- bar.delete
+
+  指定したバーを削除します。
+
+- bar.move.screen
+
+  指定したバーを画面の中央に移動します。
 
 ## カスタムモジュールの追加方法
 
