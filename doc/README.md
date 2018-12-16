@@ -827,37 +827,94 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
 - bar.create
 
+      /silence
+      こんにちは
+      わたしは
+      おしゃべりロボです
+      /silence.end
+      /.bar.text/{{payload}}
+      /bar.create/あいさつ
+
   スケジューラにバーを作成します。
 
 - bar.update
 
-  指定したバーを更新します。
+      /bar.time/2018/12/13
+      /bar.width/4
+      /bar.title/HELLO
+      /bar.text/ヤッホー
+      /bar.update/5f227a6a-1908-4680-82a3-9dbf9358b32b
+      /end
+
+  バーのUUIDをキーにして、バーを更新します。
+
+- bar.reset
+
+      /bar.reset
+
+  作成するバーを準備します。
 
 - bar.time
 
+      /bar.time/2018/12/13
+
   作成するバーの時刻を指定します。
+
+- bar.width
+
+      /bar.width/4
+
+  作成するバーの長さを指定します。単位は日数です。
+
+- bar.title
+
+      /bar.title/HELLO
+
+  作成するバーのタイトルを指定します。
+
+- bar.text
+
+      /bar.text/ヤッホー
+
+  作成するバーのテキストを指定します。
 
 - bar.find.title
 
+      /bar.find.title/あいさつ
+
   タイトルを指定してバーを検索します。
+  
+  バーのUUIDを指定して検索することもできます。
+
+      /bar.find.title/a21265d7-f765-4697-8444-67764d56f910
 
 - bar.find.time
 
-  時間を指定してバーを検索します。
+      /bar.find.time/2018/12/16
+
+  時間を指定してバーを検索します。同じ日に複数のバーがある場合は、上にあるバーを返します。
 
 - bar.eval.title
 
-  タイトルを指定してバーを検索し、検索して見つかったバーの内容をJavascriptとして実行します。
+      /bar.eval.title/a21265d7-f765-4697-8444-67764d56f910
+
+  タイトルを指定してバーを検索し、検索して見つかったバーの内容を JavaScript として実行します。
 
 - bar.eval.time
 
-  時間を指定してバーを検索し、検索して見つかったバーの内容をJavascriptとして実行します。
+      /bar.eval.time/2018/12/16
+
+  時間を指定してバーを検索し、検索して見つかったバーの内容を JavaScript として実行します。
 
 - bar.delete
 
-  指定したバーを削除します。
+      /bar.delete/edc36b61-2e8a-4770-b8bc-589cb978c125
+
+  バーのUUIDをキーにして、バーを削除します。
 
 - bar.move.screen
+
+      /bar.move.screen/a21265d7-f765-4697-8444-67764d56f910
 
   指定したバーを画面の中央に移動します。
 
