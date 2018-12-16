@@ -78,7 +78,7 @@ module.exports = function(DORA, config) {
             if (isTemplated && uuid) {
                 uuid = utils.mustache.render(uuid, msg);
             }
-            const data = normalizeBarData(msg.bar, uuid);
+            const data = { ...msg.bar, uuid };
             return data;
           }
         }())
@@ -91,6 +91,7 @@ module.exports = function(DORA, config) {
             barData: [
               { ...barData },
             ],
+            create: (type === 'create') ? true : false,
             ...this.credential(),
           }),
         })
@@ -162,6 +163,18 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function barReset(node, options) {
+    node.on("input", async function(msg) {
+      delete msg.bar;
+      node.send(msg);
+    });
+  }
+  DORA.registerType('reset', barReset);
+
+  /*
+   *
+   *
+   */
   function barTitle(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
@@ -181,6 +194,46 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('title', barTitle);
+
+  /*
+   *
+   *
+   */
+  function barWidth(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      let width = parseInt(options) || 1;
+      if (isTemplated && width) {
+          width = utils.mustache.render(width, msg);
+      }
+      if (width >= 1) {
+        if (!msg.bar) msg.bar = {}
+        msg.bar.width = width*24;
+        node.send(msg);
+      } else {
+        node.err(new Error('バーの長さは１以上の整数です。'));
+      }
+    });
+  }
+  DORA.registerType('width', barWidth);
+
+  /*
+   *
+   *
+   */
+  function barText(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      let text = options || '';
+      if (isTemplated && text) {
+          text = utils.mustache.render(text, msg);
+      }
+      if (!msg.bar) msg.bar = {}
+      msg.bar.text = text;
+      node.send(msg);
+    });
+  }
+  DORA.registerType('text', barText);
 
   /*
    *
