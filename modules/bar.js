@@ -27,7 +27,7 @@ function dayPosition(millisecond) {
   return parseInt(millisecond/unitScale);
 }
 
-function barData(bar, uuid) {
+function normalizeBarData(bar, uuid) {
   let t = {}
   if (typeof bar === 'object') {
     t = { ...bar }
@@ -60,44 +60,61 @@ module.exports = function(DORA, config) {
    *
    *
    */
-  function barCreate(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
-      var uuid = options || ((typeof msg.bar !== 'object') ? null : msg.bar.uuid);
-      if (isTemplated && uuid) {
-          uuid = utils.mustache.render(uuid, msg);
-      }
-      var headers = {};
-      headers['Content-Type'] = 'application/json';
-      let response = await fetch(`http://${msg.dora.host}:${msg.dora.port}/bar/update`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          barData: [
-            { ...barData(msg.bar, uuid) },
-          ],
-          ...this.credential(),
-        }),
-      })
-      if (response.ok) {
-        var contentType = response.headers.get("content-type");
-        if(contentType && contentType.includes("application/json")) {
-          const d = await response.json();
-          if (d.bars.length > 0) {
-            msg.bar = { ...d.bars[0], status: d.status, }
+  function barCreate(type) {
+    return function(node, options) {
+      var isTemplated = (options||"").indexOf("{{") != -1;
+      node.on("input", async function(msg) {
+        const barData = (function() {
+          if (type === 'create') {
+            var title = options || ((typeof msg.bar !== 'object') ? null : msg.bar.title);
+            if (isTemplated && title) {
+                title = utils.mustache.render(title, msg);
+            }
+            const data = normalizeBarData(msg.bar);
+            data.title = title;
+            return data;
           } else {
-            msg.bar = { status: d.status, }
+            var uuid = options || ((typeof msg.bar !== 'object') ? null : msg.bar.uuid);
+            if (isTemplated && uuid) {
+                uuid = utils.mustache.render(uuid, msg);
+            }
+            const data = normalizeBarData(msg.bar, uuid);
+            return data;
+          }
+        }())
+        var headers = {};
+        headers['Content-Type'] = 'application/json';
+        let response = await fetch(`http://${msg.dora.host}:${msg.dora.port}/bar/update`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            barData: [
+              { ...barData },
+            ],
+            ...this.credential(),
+          }),
+        })
+        if (response.ok) {
+          var contentType = response.headers.get("content-type");
+          if(contentType && contentType.includes("application/json")) {
+            const d = await response.json();
+            if (d.bars.length > 0) {
+              msg.bar = { ...d.bars[0], status: d.status, }
+            } else {
+              msg.bar = { status: d.status, }
+            }
+          } else {
+            console.log('ERROR');
           }
         } else {
           console.log('ERROR');
         }
-      } else {
-        console.log('ERROR');
-      }
-      node.send(msg);
-    });
+        node.send(msg);
+      });
+    }
   }
-  DORA.registerType('create', barCreate);
+  DORA.registerType('create', barCreate('create'));
+  DORA.registerType('update', barCreate('update'));
 
   /*
    *
