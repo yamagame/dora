@@ -283,6 +283,26 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
 
       こんにちは
 
+  - AquesTalk Pi向けパラメータ
+
+    - .speech.speed
+
+          /.speech.speed/150
+
+      発話の速さを変更します。
+
+    - .speech.volume
+
+          /.speech.volume/30
+
+      発話の音量を変更します。
+
+    - .speech.voice
+
+          /.speech.voice/marisa
+
+      発話の声を変更します。デフォルトはreimuで、marisaに変更することができます。
+
 - speech-to-text
 
       /speech-to-text/:例外発生
@@ -329,19 +349,19 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
 - call
 
       /call/quiz-play.dora
-  
+
   指定したスクリプトを呼び出します。
 
 - run
 
       /run/other_script.dora
-  
+
   フローを終了させ、指定したスクリプトを実行します。
 
 - eval
 
       /eval/msg.payload="こんにちは"
-  
+
   Javascriptを実行します。このコマンドは機能しません。
 
 - select
@@ -436,7 +456,7 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
   クイズのスライド画像を画面に表示します。
   imagesから始まった画像はPicturesフォルダに入っているファイルを表示します。
   httpから始まった画像はそのURLの画像を表示します。
-  
+
       /quiz.slide/https://upload.wikimedia.org/wikipedia/commons/d/df/Televox_and_R._J._Wensley_1928.jpg
 
 - quiz.preload
@@ -582,7 +602,7 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       :全問正解者あり
       おめでとうございます
       /end
-  
+
   クイズの全問正解者を発表します。
 
 - quiz.answerCheck
