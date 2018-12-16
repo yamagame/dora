@@ -28,6 +28,10 @@ class Flow {
     setTimeout(() => {
       for (var i=0;i<t.length;i++) {
         if (t[i].node.isAlive()) {
+          // const name = t[i].node.name;
+          // if (name !== 'text-to-speech' && name !== 'delay') {
+          //   delete m[i].silence;
+          // }
           t[i].node.emit('input', m[i], m[i].callstack);
         }
       }

@@ -247,10 +247,14 @@ module.exports = function(DORA, config) {
   function CoreDelay(node, options) {
     node.on("input", async function(msg) {
       const rate = (typeof msg.defaultInterval === 'undefined') ? 1 : parseFloat(msg.defaultInterval);
-      if (options === '0') {
-        await utils.timeout(parseInt(1000*rate));
+      if (msg.silence) {
+        msg.payload += '\n';
       } else {
-        await utils.timeout(parseInt(1000*parseFloat(options)*rate));
+        if (options === '0') {
+          await utils.timeout(parseInt(1000*rate));
+        } else {
+          await utils.timeout(parseInt(1000*parseFloat(options)*rate));
+        }
       }
       node.send(msg);
     });
@@ -733,7 +737,10 @@ module.exports = function(DORA, config) {
         }
       }
       if (msg.silence) {
-        msg.payload = message;
+        if (msg.payload !== '') {
+          msg.payload += '\n';
+        }
+        msg.payload += message;
         node.send(msg);
       } else {
         socket.emit('text-to-speech', {
@@ -749,6 +756,26 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('text-to-speech', TextToSpeech);
+
+  /**
+   * 発話をキャンセルして、発話文をpayloadにテキストとして追加する
+   * silenceしたら、silence.endすること。
+   */
+  function Silence(type) {
+    return function(node, options) {
+      node.on("input", async function(msg) {
+        if (type === 'start') {
+          msg.silence = true;
+          msg.payload = '';
+        } else {
+          delete msg.silence;
+        }
+        node.send(msg);
+      });
+    }
+  }
+  DORA.registerType('silence', Silence('start'));
+  DORA.registerType('silence.end', Silence('end'));
 
   /*
    *
