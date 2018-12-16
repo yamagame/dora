@@ -736,92 +736,136 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /.payload/10
       /op.add/100
 
-    payloadに指定した値を加算する。
+    payloadに指定した値を加算します。
 
 - op.sub
 
       /.payload/10
       /op.sub/5
 
-    payloadから指定した値を減算する。
+    payloadから指定した値を減算します。
 
 - op.mul
 
       /.payload/10
       /op.mul/2
 
-    payloadに指定した値を乗算する。
+    payloadに指定した値を乗算します。
 
 - op.div
 
       /.payload/15
       /op.div/3
 
-    payloadに指定した値を除算する。
+    payloadに指定した値を除算します。
+
+- op.and
+
+      /.payload/0103
+      /op.and/FFF0
+
+    payloadを16進数としてAND演算します。計算結果はpayloadに代入されます。
+
+    AND演算すると1のビットがあるpayloadの部分だけが残ります。
+
+      /.payload/1234
+      /op.and/0FF0   ->  payload=0230
+
+- op.or
+
+      /.payload/1234
+      /op.or/0FF0
+
+    payloadを16進数としてOR演算します。計算結果はpayloadに代入されます。
+
+    OR演算すると1のビットがあるpayloadの部分が1で塗りつぶされます。
+
+      /.payload/1234
+      /op.or/0FF0   ->  payload=1FF4
+
+- op.xor
+
+      /.payload/1234
+      /op.xor/0FF0
+
+    payloadを16進数としてXOR演算します。計算結果はpayloadに代入されます。
+
+    XOR演算を２回繰り返すと、payloadは元の値に戻ります。
+
+      /.payload/1234
+      /op.xor/0FF0   ->  payload=1DC4
+      /op.xor/0FF0   ->  payload=1234
+
+- op.not
+
+      /.payload/0101
+      /op.not
+
+    payloadを16進数としてNOT演算します。payloadのビットが反転します。
 
 - op.inc
 
       /.payload/10
       /op.inc
 
-    payloadに1加算する。
+    payloadに1加算します。
 
 - op.dec
 
       /.payload/10
       /op.dec
 
-      payloadに1減算する。
+      payloadに1減算します。
 
 - op.toInt
 
       /.payload/10
       /op.toInt
 
-    payloadの値を整数にする。
+    payloadの値を整数にします。
 
 - op.toFloat
 
       /.payload/10.123
       /op.toFloat
 
-    payloadの値を浮動小数にする。
+    payloadの値を浮動小数にします。
 
 - op.==
 
       /op.==/100/:ラベル
 
-    payloadの値が指定した値ならラベルへ遷移する。
+    payloadの値が指定した値ならラベルへ遷移します。
 
 - op.!=
 
       /op.!=/100/:ラベル
 
-    payloadの値が指定した値でなければラベルへ遷移する。
+    payloadの値が指定した値でなければラベルへ遷移します。
 
 - op.>=
 
       /op.>=/100/:ラベル
 
-    payloadの値が指定した値以上ならラベルへ遷移する。
+    payloadの値が指定した値以上ならラベルへ遷移します。
 
 - op.<=
 
       /op.<=/100/:ラベル
 
-    payloadの値が指定した値以下ならラベルへ遷移する。
+    payloadの値が指定した値以下ならラベルへ遷移します。
 
 - op.>
 
       /op.>/100/:ラベル
 
-    payloadの値が指定した値より大きいならラベルへ遷移する。
+    payloadの値が指定した値より大きいならラベルへ遷移します。
 
 - op.<
 
       /op.</100/:ラベル
 
-    payloadの値が指定した値より小さいならラベルへ遷移する。
+    payloadの値が指定した値より小さいならラベルへ遷移します。
 
 ## Bar Module
 
@@ -836,6 +880,29 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /bar.create/あいさつ
 
   スケジューラにバーを作成します。
+
+  バーのメッセージデータは以下のようになっています。
+
+      message: {
+        bar: {
+          //それぞれのバー固有のID
+          uuid: '02a73b8d-30e3-4437-adbc-177570f2b453',
+          //1970年からの時間、1時間単位
+          x: 429159,
+          //スケジューラのY座標、24で1メモリ
+          y: 0,
+          //バーの横幅、1時間単位
+          width: 24,
+          //バーの高さ、24固定
+          height: 24,
+          //バーの色、RGBA
+          rgba: '#00FF00FF',
+          title: 'バーのタイトル',
+          text: 'バーの本文',
+          //バーの形状、roundrect固定
+          type: 'roundrect',
+        }
+      }
 
 - bar.update
 
@@ -852,7 +919,9 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
       /bar.reset
 
-  作成するバーを準備します。
+  作成するバーを準備します。バーのメッセージデータが空オブジェクトになります。
+
+  新規にバーを作成する場合は、/bar.resetコマンドを最初に実行します。
 
 - bar.time
 
@@ -904,13 +973,17 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
       /bar.find.time/2018/12/16
 
-  時間を指定してバーを検索します。同じ日に複数のバーがある場合は、上にあるバーを返します。
+  時間を指定してバーを検索します。同じ日に複数のバーがある場合は、スケジューラで見たときに上にあるバーを返します。
 
 - bar.eval.title
 
-      /bar.eval.title/a21265d7-f765-4697-8444-67764d56f910
+      /bar.eval.title/あいさつ
 
   タイトルを指定してバーを検索し、検索して見つかったバーの内容を JavaScript として実行します。
+  
+  バーのUUIDを指定して検索することもできます。
+
+      /bar.eval.title/a21265d7-f765-4697-8444-67764d56f910
 
 - bar.eval.time
 
@@ -929,6 +1002,12 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /bar.move.screen/a21265d7-f765-4697-8444-67764d56f910
 
   指定したバーを画面の中央に移動します。
+
+  バーを作成、更新、検索直後は、UUIDの指定を省略できます。
+
+      /bar.color/red
+      /bar.update/c9fe41e1-b866-408a-8d25-2e5516252c5f
+      /bar.move.screen
 
 ## カスタムモジュールの追加方法
 
