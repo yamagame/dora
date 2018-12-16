@@ -1,6 +1,7 @@
 const utils = require('../libs/utils');
 const fetch = require('node-fetch');
 const uuidv4 = require('uuid/v4');
+const rgba = require('color-rgba');
 
 const defaultBarData = {
   width: 24,
@@ -121,6 +122,18 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function barReset(node, options) {
+    node.on("input", async function(msg) {
+      delete msg.bar;
+      node.send(msg);
+    });
+  }
+  DORA.registerType('reset', barReset);
+
+  /*
+   *
+   *
+   */
   function barTime(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
@@ -158,18 +171,6 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('today', barToday);
-
-  /*
-   *
-   *
-   */
-  function barReset(node, options) {
-    node.on("input", async function(msg) {
-      delete msg.bar;
-      node.send(msg);
-    });
-  }
-  DORA.registerType('reset', barReset);
 
   /*
    *
@@ -234,6 +235,30 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('text', barText);
+
+  /*
+   *
+   *
+   */
+  function barColor(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      let color = options || '';
+      if (isTemplated && color) {
+          color = utils.mustache.render(color, msg);
+      }
+      if (!msg.bar) msg.bar = {}
+      const c = rgba(color);
+      if (c) {
+        function toHex(v) {
+          return ('00'+v.toString(16)).slice(-2).toUpperCase();
+        }
+        msg.bar.rgba = `#${toHex(c[0])}${toHex(c[1])}${toHex(c[2])}${toHex(parseInt(c[3]*0xFF))}`;
+      }
+      node.send(msg);
+    });
+  }
+  DORA.registerType('color', barColor);
 
   /*
    *

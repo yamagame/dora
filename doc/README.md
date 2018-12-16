@@ -878,6 +878,18 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
   作成するバーのテキストを指定します。
 
+- bar.color
+
+      /bar.color/green
+
+  作成するバーの色を指定します。
+
+  次のような指定もできます。
+
+      /bar.color/rgb(80,120,160)
+      /bar.color/rgba(80, 120, 160, .5)
+      /bar.color/hsla(109, 50%, 50%, .75)
+
 - bar.find.title
 
       /bar.find.title/あいさつ
