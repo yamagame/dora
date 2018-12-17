@@ -342,6 +342,10 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
 
   パラメータを省略するとmsg.payloadの文字列がAPIに渡されます。
 
+  以下のコマンドも同様に動作します。
+
+      /docomo-chat
+
 - switch
 
       /switch/こんにちは/:あいさつ
@@ -389,6 +393,73 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
       /ng/スパゲッティ
 
   クイズの不正解となる選択肢です。quiz.initコマンドと共に使用します。
+
+## dora-chat コマンド
+
+- dora-chat
+
+      /.payload/こんばんは
+      /.chat.sheetId/[SheetID]
+      /.chat.sheetName/[SheetName]
+      /dora-chat
+      /log/{{payload}}
+
+  Googleスプレッドシートからチャットデータをダウンロードして、payload に答えを返します。
+  すでにダウンロード済みの場合は、キャッシュから探します。
+
+  Googleスプレッドシートに ask と answer のヘッダを持ったカラムを作成します。ask が認識したキーワードで、answer が答えです。
+
+  askカラムを上から順に辿って、payload の内容と「部分一致」した answer を返します。
+
+  .chat.download の初期値は auto です。
+  .chat.download が force の場合は、キャッシュがあっても強制的にダウンロードします。
+
+      /.payload/こんばんは
+      /.chat.download/force
+      /.chat.sheetId/[SheetID]
+      /.chat.sheetName/[SheetName]
+      /dora-chat
+      /log/{{payload}}
+
+- dora-chat/search
+
+      /.payload/こんばんは
+      /.chat.sheetId/[SheetID]
+      /.chat.sheetName/[SheetName]
+      /dora-chat/search
+      /log/{{payload}}
+
+  Googleスプレッドシートからチャットデータをダウンロードして、payload に答えを返します。
+  すでにダウンロード済みの場合は、キャッシュから探します。
+
+  Googleスプレッドシートに ask と answer のヘッダを持ったカラムを作成します。askが認識したキーワードで、answer が答えです。
+
+  askカラムを上から順に辿って、payload の内容と「完全一致」した answer を返します。
+
+- dora-chat/random
+
+      /dora-chat/random
+    
+  Googleスプレッドシートからチャットデータをダウンロードして、payload にランダムな答えを返します。
+  すでにダウンロード済みの場合は、キャッシュから探します。
+
+- dora-chat/time
+
+      /dora-chat/time
+    
+    現在の時刻を「8時6分です。」のように payload に設定します。
+
+- dora-chat/date
+
+      /dora-chat/date
+    
+    現在の日にちを「きょうは12月、18日です。」のように payload に設定します。
+
+- dora-chat/day
+
+      /dora-chat/day
+    
+    現在の曜日を「きょうは火曜日です。」のように payload に設定します。
 
 ## HTTP Module
 
