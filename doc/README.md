@@ -1,6 +1,6 @@
 # DoraScript Language Specification
 
-Version 0.0.1
+Version 0.2.0
 
 ## Basic Concepts
 
