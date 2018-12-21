@@ -1037,9 +1037,11 @@ module.exports = function(DORA, config) {
         ...this.credential(),
       }, (res) => {
         if (!node.isAlive()) return;
-        msg.payload = res.answer;
-        if (!msg.chat) msg.chat = {};
-        msg.chat.result = res;
+        if (action === 'download') {
+          msg.payload = res.answer;
+          if (!msg.chat) msg.chat = {};
+          msg.chat.result = res;
+        }
         node.next(msg);
       });
     });
@@ -1442,4 +1444,18 @@ module.exports = function(DORA, config) {
     })
   }
   DORA.registerType('convert', Convert);
+
+  /*
+   * 電源を切る
+   *
+   */
+  function PowerOff(node, options) {
+    node.on("input", async function(msg) {
+      await node.flow.request({
+        type: 'poweroff',
+      });
+      node.next(msg);
+    })
+  }
+  DORA.registerType('poweroff', PowerOff);
 }
