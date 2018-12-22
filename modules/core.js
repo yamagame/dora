@@ -1037,7 +1037,7 @@ module.exports = function(DORA, config) {
         ...this.credential(),
       }, (res) => {
         if (!node.isAlive()) return;
-        if (action === 'download') {
+        if (action !== 'download') {
           msg.payload = res.answer;
           if (!msg.chat) msg.chat = {};
           msg.chat.result = res;
