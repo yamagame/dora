@@ -63,4 +63,19 @@ module.exports = function(DORA, config) {
   }
   DORA.registerType('auto', LEDAuto);
 
+  /*
+   *
+   *
+   */
+  function LEDTalk(node, options) {
+    node.on("input", async function(msg) {
+      await node.flow.request({
+        type: 'led',
+        action: 'talk',
+      });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('talk', LEDTalk);
+
 }
