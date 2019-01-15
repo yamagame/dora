@@ -25,6 +25,7 @@ module.exports = function(DORA, config) {
         date: now.getDate(),
         hours: now.getHours(),
         minutes: now.getMinutes(),
+        day: now.getDay(),
       }
       node.send(msg);
     });
