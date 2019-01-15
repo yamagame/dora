@@ -279,6 +279,11 @@ module.exports = function(DORA, config) {
         };
         if (type === 'title') delete params.x;
         if (type === 'time') delete params.title;
+        if (type === 'now') {
+          delete params.x;
+          delete params.title;
+          params.x = dayPosition(today().getTime());
+        }
         var headers = {};
         headers['Content-Type'] = 'application/json';
         let response = await fetch(`http://${msg.dora.host}:${msg.dora.port}/bar/findOne`, {
@@ -311,9 +316,11 @@ module.exports = function(DORA, config) {
   DORA.registerType('find', barFind(null));
   DORA.registerType('find.title', barFind('title'));
   DORA.registerType('find.time', barFind('time'));
+  DORA.registerType('find.now', barFind('now'));
   DORA.registerType('eval', barFind(null, 'eval'));
   DORA.registerType('eval.title', barFind('title', 'eval'));
   DORA.registerType('eval.time', barFind('time', 'eval'));
+  DORA.registerType('eval.now', barFind('now', 'eval'));
 
   /*
    *
