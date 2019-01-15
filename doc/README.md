@@ -394,6 +394,14 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
 
   クイズの不正解となる選択肢です。quiz.initコマンドと共に使用します。
 
+- now
+
+      /now
+
+  今の時刻を返します。メッセージの now オブジェクトに下記のフォーマットで返ってきます。
+
+      now: { year: 2019, month: 1, date: 16, hours: 8, minutes: 41, day: 3 }
+
 ## dora-chat コマンド
 
 - dora-chat
@@ -1000,6 +1008,12 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
   作成するバーの時刻を指定します。
 
+- bar.today
+
+      /bar.today
+
+  作成するバーの時刻に今の時刻を指定します。
+
 - bar.width
 
       /bar.width/4
@@ -1030,6 +1044,12 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /bar.color/rgba(80, 120, 160, .5)
       /bar.color/hsla(109, 50%, 50%, .75)
 
+- bar.find.now
+
+      /bar.find.now
+
+  今の時間でバーを検索します。同じ日に複数のバーがある場合は、スケジューラで見たときに上にあるバーを返します。
+
 - bar.find.title
 
       /bar.find.title/あいさつ
@@ -1045,6 +1065,12 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /bar.find.time/2018/12/16
 
   時間を指定してバーを検索します。同じ日に複数のバーがある場合は、スケジューラで見たときに上にあるバーを返します。
+
+- bar.eval.now
+
+      /bar.eval.now
+
+  今の時間でバーを検索し、検索して見つかったバーの内容を JavaScript として実行します。
 
 - bar.eval.title
 
