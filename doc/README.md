@@ -938,7 +938,7 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
 
     payloadの値が指定した値より小さいならラベルへ遷移します。
 
-## Bar Module
+## Bar Module
 
 - bar.create
 
