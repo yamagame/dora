@@ -281,7 +281,6 @@ module.exports = function(DORA, config) {
         if (type === 'time') delete params.title;
         if (type === 'now') {
           delete params.x;
-          delete params.title;
           params.x = dayPosition(today().getTime());
         }
         var headers = {};
