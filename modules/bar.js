@@ -266,10 +266,18 @@ module.exports = function(DORA, config) {
    */
   function barFind(type, mode) {
     return function(node, options) {
-      var isTemplated = (options||"").indexOf("{{") != -1;
+      const params = options.split('/:');
+      var string = params[0];
+      var isTemplated = (string||"").indexOf("{{") != -1;
+      const pLen = params.length;
+      if (params.length > 1) {
+        node.nextLabel(`:${params.slice(1).join('/:')}`);
+      }
       node.on("input", async function(msg) {
+        const { socket } = node.flow.options;
+        let exist = false;
         if (!msg.bar) msg.bar = {}
-        let title = options || msg.bar.title;
+        let title = string || msg.bar.title;
         if (isTemplated && title) {
             title = utils.mustache.render(title, msg);
         }
@@ -300,14 +308,21 @@ module.exports = function(DORA, config) {
             if (mode === 'eval' && msg.bar.status === 'found') {
               eval(`(function(msg) { ${msg.bar.text} })(msg)`)
             }
-            node.send(msg);
+            if (msg.bar.status === 'found') {
+              exist = true;
+            }
           } else {
             console.log('ERROR');
-            node.send(msg);
+            utils.logMessage(node, socket, 'ERROR');
           }
         } else {
           console.log('ERROR');
-          node.send(msg);
+          utils.logMessage(node, socket, 'ERROR');
+        }
+        if (!exist && pLen > 1) {
+          node.jump(msg);
+        }　else {
+          node.next(msg);
         }
       });
     }
