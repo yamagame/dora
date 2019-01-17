@@ -52,13 +52,7 @@ module.exports = function(DORA, config) {
         logstr += options;
       }
       console.log(`log-->\n${logstr}\n<--log`);
-      socket.emit('dora-event', {
-        action: 'log',
-        message: logstr,
-        lineNumber: node.index+1,
-        filename: node.flow.filename,
-        ...this.credential(),
-      })
+      utils.logMessage(node, socket, logstr);
       node.send(msg);
     });
   }
@@ -131,7 +125,6 @@ module.exports = function(DORA, config) {
     }
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      const n = [];
       let message = string;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
@@ -1062,7 +1055,6 @@ module.exports = function(DORA, config) {
     }
     node.on("input", function(msg) {
       if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      const n = [];
       let message = string;
       if (isTemplated) {
           message = utils.mustache.render(message, msg);

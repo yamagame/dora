@@ -94,6 +94,16 @@ function getParam(param, key, def) {
   return def;
 }
 
+function logMessage(node, socket, message) {
+  socket.emit('dora-event', {
+    action: 'log',
+    message,
+    lineNumber: node.index+1,
+    filename: node.flow.filename,
+    ...node.credential(),
+  })
+}
+
 module.exports = {
   timeout,
   generateId,
@@ -104,6 +114,7 @@ module.exports = {
   nGramCheck,
   clone: _clone,
   getParam,
+  logMessage,
 }
 
 if (require.main === module) {
