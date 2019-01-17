@@ -109,6 +109,8 @@ module.exports = function(DORA, config) {
         messages: (msg.quiz.message) ? msg.quiz.message.messages : null,
         backgroundImage: (msg.quiz.backgroundImage) ? msg.quiz.backgroundImage : null,
         backgroundColor: (msg.quiz.backgroundColor) ? msg.quiz.backgroundColor : null,
+        quizMode: (msg.quiz.quizMode) ? msg.quiz.quizMode : null,
+        closeButton: (msg.quiz.closeButton) ? msg.quiz.closeButton : false,
         links: (msg.quiz.message) ? [
           {
             title: msg.quiz.message.link,
