@@ -903,7 +903,7 @@ module.exports = function(DORA, config) {
   function QuizResult(node, options) {
     let pageNumber = null;
     if (options !== null) {
-      if (options === 'last') {
+      if (options === 'last' || options === 'scorefirst') {
         pageNumber = options;
       } else {
         pageNumber = parseInt(options);
@@ -939,6 +939,39 @@ module.exports = function(DORA, config) {
           action: 'quiz-answer',
           pageNumber: pages.length-1,
         });
+      } else if (pageNumber === 'scorefirst') {
+        await node.flow.request('command', {
+            restype: 'text',
+          }, {
+          type: 'quiz',
+          action: 'quiz-answer',
+          pageNumber: pages.length-1,
+        });
+        await node.flow.request('text-to-speech', {
+          restype: 'text',
+        }, {
+          message: `それでは答え合わせです`,
+        });
+        await utils.timeout(3000);
+        let num = 0;
+        for (var i=0;i<pages.length-1;i++) {
+          if (pages[i].action === 'quiz') {
+            await node.flow.request('command', {
+              restype: 'text',
+            }, {
+              type: 'quiz',
+              action: 'quiz-answer',
+              pageNumber: i,
+            });
+            await node.flow.request('text-to-speech', {
+              restype: 'text',
+            }, {
+              message: `${num+1}問目の答えはこれです`,
+            });
+            await utils.timeout(3000);
+            num ++;
+          }
+        }
       } else {
         if (pageNumber === 'last') {
           await node.flow.request('command', {
