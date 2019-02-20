@@ -947,10 +947,11 @@ module.exports = function(DORA, config) {
           action: 'quiz-answer',
           pageNumber: pages.length-1,
         });
+        await utils.timeout(2000);
         await node.flow.request('text-to-speech', {
           restype: 'text',
         }, {
-          message: `それでは答え合わせです`,
+          message: `それでは、答え合わせです`,
         });
         await utils.timeout(3000);
         let num = 0;
