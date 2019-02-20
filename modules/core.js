@@ -1059,6 +1059,7 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
+      if (typeof msg.payload === 'undefined') msg.payload = '';
       if (message.trim() == msg.payload.toString().trim()) {
         node.jump(msg);
       } else {
