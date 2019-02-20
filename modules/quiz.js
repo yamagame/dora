@@ -947,7 +947,7 @@ module.exports = function(DORA, config) {
           action: 'quiz-answer',
           pageNumber: pages.length-1,
         });
-        await utils.timeout(2000);
+        await utils.timeout(3000);
         await node.flow.request('text-to-speech', {
           restype: 'text',
         }, {
