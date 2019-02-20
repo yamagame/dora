@@ -447,26 +447,26 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
 - dora-chat/random
 
       /dora-chat/random
-    
+
   Googleスプレッドシートからチャットデータをダウンロードして、payload にランダムな答えを返します。
   すでにダウンロード済みの場合は、キャッシュから探します。
 
 - dora-chat/time
 
       /dora-chat/time
-    
+
     現在の時刻を「8時6分です。」のように payload に設定します。
 
 - dora-chat/date
 
       /dora-chat/date
-    
+
     現在の日にちを「きょうは12月、18日です。」のように payload に設定します。
 
 - dora-chat/day
 
       /dora-chat/day
-    
+
     現在の曜日を「きょうは火曜日です。」のように payload に設定します。
 
 ## HTTP Module
@@ -679,6 +679,18 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /quiz.result/
 
   クイズの回答を発表します。
+
+  - quiz.resultscore
+
+        /quiz.resultscore
+
+    全問中の正答数のみ表示します。
+
+  - quiz.resultcheck
+
+        /quiz.resultcheck
+
+    答え合わせのみ行います。
 
 - quiz.ranking
 
@@ -1051,7 +1063,7 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
   今の時間でバーを検索します。同じ日に複数のバーがある場合は、スケジューラで見たときに上にあるバーを返します。
 
   タイトルを指定してバーを検索することもできます。
-  
+
       /bar.find.now/あいさつ
 
 - bar.find.title
@@ -1059,7 +1071,7 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /bar.find.title/あいさつ
 
   タイトルを指定してバーを検索します。
-  
+
   バーのUUIDを指定して検索することもできます。
 
       /bar.find.title/a21265d7-f765-4697-8444-67764d56f910
@@ -1077,7 +1089,7 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
   今の時間でバーを検索し、検索して見つかったバーの内容を JavaScript として実行します。
 
   タイトルを指定してバーを検索することもできます。
-  
+
       /bar.eval.now/あいさつ
 
 - bar.eval.title
@@ -1085,7 +1097,7 @@ HTTPモジュールはNode-REDとの連携を想定しています。テキス�
       /bar.eval.title/あいさつ
 
   タイトルを指定してバーを検索し、検索して見つかったバーの内容を JavaScript として実行します。
-  
+
   バーのUUIDを指定して検索することもできます。
 
       /bar.eval.title/a21265d7-f765-4697-8444-67764d56f910
