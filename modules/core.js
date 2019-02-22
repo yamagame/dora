@@ -1450,4 +1450,18 @@ module.exports = function(DORA, config) {
     })
   }
   DORA.registerType('poweroff', PowerOff);
+
+  /*
+   * 再起動
+   *
+   */
+  function Reboot(node, options) {
+    node.on("input", async function(msg) {
+      await node.flow.request({
+        type: 'reboot',
+      });
+      node.next(msg);
+    })
+  }
+  DORA.registerType('reboot', Reboot);
 }
