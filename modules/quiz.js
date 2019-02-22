@@ -556,21 +556,24 @@ module.exports = function(DORA, config) {
    *
    *
    */
-  function QuizIFrame(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      let url = options;
-      if (isTemplated) {
-          url = utils.mustache.render(url, msg);
-      }
-      if (msg.quiz.pages.length > 0) {
-        msg.quiz.pages[msg.quiz.pages.length-1].inlineFrame = { url, };
-      }
-      node.send(msg);
-    });
+  function QuizIFrame(params) {
+    return function(node, options) {
+      var isTemplated = (options||"").indexOf("{{") != -1;
+      node.on("input", function(msg) {
+        if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+        let url = options;
+        if (isTemplated) {
+            url = utils.mustache.render(url, msg);
+        }
+        if (msg.quiz.pages.length > 0) {
+          msg.quiz.pages[msg.quiz.pages.length-1].inlineFrame = { ...params, url, };
+        }
+        node.send(msg);
+      });
+    }
   }
-  DORA.registerType('iframe', QuizIFrame);
+  DORA.registerType('iframe', QuizIFrame({}));
+  DORA.registerType('iframe.offsetBottom.114', QuizIFrame({ offsetBottom: 114 }));
 
   /**
    *
