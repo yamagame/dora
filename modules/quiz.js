@@ -970,6 +970,60 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function QuizResultScore(node, options) {
+    let pageNumber = null;
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      const { pages } = msg.quiz;
+      await node.flow.request('command', {
+        restype: 'text',
+      }, {
+        type: 'quiz',
+        action: 'quiz-answer',
+        pageNumber: pages.length-1,
+      });
+      node.send(msg);
+    });
+  }
+  DORA.registerType('resultscore', QuizResultScore);
+
+  /**
+   *
+   *
+   */
+  function QuizResultCheck(node, options) {
+    let pageNumber = null;
+    node.on("input", async function(msg) {
+      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+      const { pages } = msg.quiz;
+      let num = 0;
+      for (var i=0;i<pages.length-1;i++) {
+        if (pages[i].action === 'quiz') {
+          await node.flow.request('command', {
+            restype: 'text',
+          }, {
+            type: 'quiz',
+            action: 'quiz-answer',
+            pageNumber: i,
+          });
+          await node.flow.request('text-to-speech', {
+            restype: 'text',
+          }, {
+            message: `${num+1}問目の答えはこれです`,
+          });
+          await utils.timeout(3000);
+          num ++;
+        }
+      }
+      node.send(msg);
+    });
+  }
+  DORA.registerType('resultcheck', QuizResultCheck);
+
+  /**
+   *
+   *
+   */
   function QuizRanking(node, options) {
     node.nextLabel(options)
     node.on("input", async function(msg) {
