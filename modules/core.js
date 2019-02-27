@@ -129,7 +129,7 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      if (typeof msg.payload !== 'undefined' && msg.payload.toString().indexOf(message) >= 0) {
+      if (typeof msg.payload !== 'undefined' && msg.payload.toString().toLowerCase().indexOf(message.trim().toLowerCase()) >= 0) {
         node.jump(msg);
       }　else {
         node.next(msg);
@@ -1071,7 +1071,7 @@ module.exports = function(DORA, config) {
           message = utils.mustache.render(message, msg);
       }
       if (typeof msg.payload === 'undefined') msg.payload = '';
-      if (message.trim() == msg.payload.toString().trim()) {
+      if (message.trim().toLowerCase() == msg.payload.toString().trim().toLowerCase()) {
         node.jump(msg);
       } else {
         node.next(msg);
