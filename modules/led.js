@@ -1,81 +1,28 @@
 const utils = require('../libs/utils');
 const fetch = require('node-fetch');
 
+function LEDCommon(action='auto') {
+  return function(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      let option = options;
+      if (isTemplated) {
+          option = utils.mustache.render(option, msg);
+      }
+      await node.flow.request({
+        type: 'led',
+        action,
+        option,
+      });
+      node.send(msg);
+    });
+  }
+}
+
 module.exports = function(DORA, config) {
-
-  /*
-   *
-   *
-   */
-  function LEDOn(node, options) {
-    node.on("input", async function(msg) {
-      await node.flow.request({
-        type: 'led',
-        action: 'on',
-      });
-      node.send(msg);
-    });
-  }
-  DORA.registerType('on', LEDOn);
-
-  /*
-   *
-   *
-   */
-  function LEDOff(node, options) {
-    node.on("input", async function(msg) {
-      await node.flow.request({
-        type: 'led',
-        action: 'off',
-      });
-      node.send(msg);
-    });
-  }
-  DORA.registerType('off', LEDOff);
-
-  /*
-   *
-   *
-   */
-  function LEDBlink(node, options) {
-    node.on("input", async function(msg) {
-      await node.flow.request({
-        type: 'led',
-        action: 'blink',
-      });
-      node.send(msg);
-    });
-  }
-  DORA.registerType('blink', LEDBlink);
-
-  /*
-   *
-   *
-   */
-  function LEDAuto(node, options) {
-    node.on("input", async function(msg) {
-      await node.flow.request({
-        type: 'led',
-        action: 'auto',
-      });
-      node.send(msg);
-    });
-  }
-  DORA.registerType('auto', LEDAuto);
-
-  /*
-   *
-   *
-   */
-  function LEDTalk(node, options) {
-    node.on("input", async function(msg) {
-      await node.flow.request({
-        type: 'led',
-        action: 'talk',
-      });
-      node.send(msg);
-    });
-  }
-  DORA.registerType('talk', LEDTalk);
-
+  DORA.registerType('on', LEDCommon('on'));
+  DORA.registerType('off', LEDCommon('off'));
+  DORA.registerType('blink', LEDCommon('blink'));
+  DORA.registerType('auto', LEDCommon('auto'));
+  DORA.registerType('talk', LEDCommon('talk'));
 }

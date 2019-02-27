@@ -966,10 +966,16 @@ module.exports = function(DORA, config) {
    *
    */
   function JoinFlow(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", function(msg) {
       const { socket } = node.flow.options;
+      var option = options;
+      if (isTemplated) {
+          option = utils.mustache.render(option, msg);
+      }
       socket.emit('stop-speech', {
         ...this.credential(),
+        option,
       }, (res) => {
         if (!node.isAlive()) return;
         node.join();
