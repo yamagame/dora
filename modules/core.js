@@ -239,15 +239,20 @@ module.exports = function(DORA, config) {
    *
    */
   function CoreDelay(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      const rate = (typeof msg.defaultInterval === 'undefined') ? 1 : parseFloat(msg.defaultInterval);
+      let rate = (typeof msg.defaultInterval === 'undefined') ? 1 : parseFloat(msg.defaultInterval);
+      let delay = options;
+      if (isTemplated) {
+        delay = utils.mustache.render(delay, msg);
+      }
       if (msg.silence) {
         msg.payload += '\n';
       } else {
-        if (options === '0') {
+        if (delay === '0') {
           await utils.timeout(parseInt(1000*rate));
         } else {
-          await utils.timeout(parseInt(1000*parseFloat(options)*rate));
+          await utils.timeout(parseInt(1000*parseFloat(delay)*rate));
         }
       }
       node.send(msg);
