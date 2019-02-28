@@ -458,21 +458,24 @@ module.exports = function(DORA, config) {
    *
    *
    */
-  function Sound(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
-      let message = options;
-      if (isTemplated) {
-        message = DORA.utils.mustache.render(message, msg);
-      }
-      await node.flow.request({
-        type: 'sound',
-        sound: message,
+  function Sound(type) {
+    return function(node, options) {
+      var isTemplated = (options||"").indexOf("{{") != -1;
+      node.on("input", async function(msg) {
+        let message = options;
+        if (isTemplated) {
+          message = DORA.utils.mustache.render(message, msg);
+        }
+        await node.flow.request({
+          type,
+          sound: message,
+        });
+        node.send(msg);
       });
-      node.send(msg);
-    });
+    }
   }
-  DORA.registerType('sound', Sound);
+  DORA.registerType('sound', Sound('sound'));
+  DORA.registerType('sound.sync', Sound('sound.sync'));
 
   /*
    *
