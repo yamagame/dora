@@ -484,7 +484,7 @@ module.exports = function(DORA, config) {
   function CoreSet(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     const p = options.split('/');
-    const field = p[0].split('.');
+    const field = p[0].split('.').filter( v => v !== '' );
     if (p.length < 2) {
       throw new Error('パラメータがありません。');
     }
@@ -535,7 +535,7 @@ module.exports = function(DORA, config) {
   function CoreSetString(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     const p = options.split('/');
-    const field = p[0].split('.');
+    const field = p[0].split('.').filter( v => v !== '' );
     if (p.length < 2) {
       throw new Error('パラメータがありません。');
     }
@@ -569,6 +569,7 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('setString', CoreSetString);
+  DORA.registerType('set.string', CoreSetString);
 
   /*
    *
@@ -577,7 +578,7 @@ module.exports = function(DORA, config) {
   function CoreSetNumber(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     const p = options.split('/');
-    const field = p[0].split('.');
+    const field = p[0].split('.').filter( v => v !== '' );
     if (p.length < 2) {
       throw new Error('パラメータがありません。');
     }
@@ -621,6 +622,7 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('setNumber', CoreSetNumber);
+  DORA.registerType('set.number', CoreSetNumber);
 
   /*
    *
@@ -632,8 +634,10 @@ module.exports = function(DORA, config) {
     node.on("input", async function(msg) {
       let t = msg;
       field.forEach( f => {
-        if (typeof t !== 'undefined') {
-          t = t[f];
+        if (f !== '') {
+          if (typeof t !== 'undefined') {
+            t = t[f];
+          }
         }
       });
       if (typeof t !== 'undefined') {
@@ -1478,4 +1482,75 @@ module.exports = function(DORA, config) {
     })
   }
   DORA.registerType('reboot', Reboot);
+
+  /*
+   * 設定値のセーブ
+   *
+   */
+  function Save(node, options) {
+    const p = (options) ? options.split('/') : [];
+    let field = (p.length > 0) ? p[0].split('.') : [];
+    if (p.length < 1) {
+      field = ['defaults'];
+    }
+    node.on("input", async function(msg) {
+      let t = msg;
+      field.forEach( f => {
+        if (f !== '') {
+          if (typeof t !== 'undefined') {
+            t = t[f];
+          }
+        }
+      });
+      if (typeof t !== 'undefined') {
+        await node.flow.request({
+          type: 'save',
+          data: t,
+        });
+      }
+      node.next(msg);
+    })
+  }
+  DORA.registerType('save', Save);
+
+  /*
+   * 設定値のロード
+   *
+   */
+  function Load(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    const p = (options) ? options.split('/') : [];
+    let field = (p.length > 0) ? p[0].split('.').filter( v => v !== '' ) : [];
+    if (p.length < 1) {
+      field = ['defaults'];
+    }
+    node.on("input", async function(msg) {
+      const response = await node.flow.request({
+        type: 'load',
+      });
+      let t = msg;
+      let key = null;
+      let v = msg;
+      field.forEach( f => {
+        if (typeof t === 'undefined' || typeof t !== 'object') {
+          v[key] = {};
+          t = v[key];
+        }
+        key = f;
+        v = t
+        t = t[f];
+      });
+      if (typeof v !== 'undefined' && typeof key !== 'undefined') {
+        v[key]= response.data;
+      }
+      if (msg.labels) {
+        Object.keys(msg.labels).forEach( key => {
+          const v = msg.labels[key];
+          this.flow.labels[key] = v;
+        });
+      }
+      node.next(msg);
+    })
+  }
+  DORA.registerType('load', Load);
 }
