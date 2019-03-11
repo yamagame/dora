@@ -744,6 +744,10 @@ module.exports = function(DORA, config) {
         if (typeof msg.speech.host !== 'undefined') {
           params.host = msg.speech.host;
         }
+        //AWS Polly向けパラメータ
+        if (typeof msg.speech.voiceId !== 'undefined') {
+          params.voiceId = msg.speech.voiceId;
+        }
       }
       if (msg.silence) {
         if (msg.payload !== '') {
