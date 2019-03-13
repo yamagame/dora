@@ -55,6 +55,32 @@ function QuizCategory(node, msg, options, isTemplated) {
   node.send(msg);
 }
 
+async function QuizSlide(node, msg, options, isTemplated) {
+  if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+  let message = options;
+  if (isTemplated) {
+      message = utils.mustache.render(message, msg);
+  }
+  if (path.extname(message.toLowerCase()) == '.json') {
+    await node.flow.request({
+      type: 'quiz',
+      action: 'slide',
+      photo: `${message}`,
+      pages: [],
+      area: `${message}`,
+    });
+  } else {
+    await node.flow.request({
+      type: 'quiz',
+      action: 'slide',
+      photo: `${message}`,
+      pages: [],
+      area: null,
+    });
+  }
+  node.send(msg);
+}
+
 module.exports = function(DORA, config) {
 
   /**
@@ -154,35 +180,13 @@ module.exports = function(DORA, config) {
    *
    *
    */
-  function QuizSlide(node, options) {
+  function QuizSlideFunc(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
-      let message = options;
-      if (isTemplated) {
-          message = utils.mustache.render(message, msg);
-      }
-      if (path.extname(message.toLowerCase()) == '.json') {
-        await node.flow.request({
-          type: 'quiz',
-          action: 'slide',
-          photo: `${message}`,
-          pages: [],
-          area: `${message}`,
-        });
-      } else {
-        await node.flow.request({
-          type: 'quiz',
-          action: 'slide',
-          photo: `${message}`,
-          pages: [],
-          area: null,
-        });
-      }
-      node.send(msg);
+      await QuizSlide(node, msg, options, isTemplated);
     });
   }
-  DORA.registerType('slide', QuizSlide);
+  DORA.registerType('slide', QuizSlideFunc);
 
   /**
    *
@@ -986,6 +990,7 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('resultscore', QuizResultScore);
+  DORA.registerType('result.score', QuizResultScore);
 
   /**
    *
@@ -1019,6 +1024,7 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('resultcheck', QuizResultCheck);
+  DORA.registerType('result.check', QuizResultCheck);
 
   /**
    *
@@ -1179,6 +1185,7 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('answerCheck', QuizAnswerCheck);
+  DORA.registerType('answer.check', QuizAnswerCheck);
 
   /**
    *
@@ -1201,6 +1208,7 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('totalCount', QuizTotalCount);
+  DORA.registerType('total.count', QuizTotalCount);
 
   /**
    *
@@ -1413,3 +1421,4 @@ module.exports.QuizNG = QuizNG;
 module.exports.QuizOKImage = QuizOKImage;
 module.exports.QuizNGImage = QuizNGImage;
 module.exports.QuizCategory = QuizCategory;
+module.exports.QuizSlide = QuizSlide;

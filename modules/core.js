@@ -1,4 +1,5 @@
 const utils = require('../libs/utils');
+const path = require('path');
 const mecab = require('../libs/mecab');
 const fetch = require('node-fetch');
 const {
@@ -7,6 +8,7 @@ const {
   QuizNG,
   QuizNGImage,
   QuizCategory,
+  QuizSlide,
 } = require('./quiz');
 
 module.exports = function(DORA, config) {
@@ -409,6 +411,7 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('joinLoop', CoreJoinLoop);
+  DORA.registerType('join.loop', CoreJoinLoop);
 
   /*
    *
@@ -1176,6 +1179,7 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('mecabCheck', CoreMecabCheck);
+  DORA.registerType('mecab.check', CoreMecabCheck);
 
   /*
    *
@@ -1445,14 +1449,16 @@ module.exports = function(DORA, config) {
       if (isTemplated) {
           message = utils.mustache.render(message, msg);
       }
-      let p = message.split('/');
-      let command = p.shift();
-      message = p.join('/');
-      if (command === 'encodeURIComponent') {
-        msg.payload = encodeURIComponent(message);
-      }
-      if (command === 'decodeURIComponent') {
-        msg.payload = decodeURIComponent(message);
+      if (typeof message !== 'undefined') {
+        let p = message.toString().split('/');
+        let command = p.shift();
+        message = p.join('/');
+        if (command === 'encodeURIComponent') {
+          msg.payload = encodeURIComponent(message);
+        }
+        if (command === 'decodeURIComponent') {
+          msg.payload = decodeURIComponent(message);
+        }
       }
       node.next(msg);
     })
@@ -1557,4 +1563,16 @@ module.exports = function(DORA, config) {
     })
   }
   DORA.registerType('load', Load);
+
+  /**
+   *
+   *
+   */
+  function QuizSlideFunc(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      await QuizSlide(node, msg, options, isTemplated);
+    });
+  }
+  DORA.registerType('slide', QuizSlideFunc);
 }
