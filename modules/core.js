@@ -1515,6 +1515,7 @@ module.exports = function(DORA, config) {
       if (typeof t !== 'undefined') {
         await node.flow.request({
           type: 'save',
+          action: 'defaults',
           data: t,
         });
       }
@@ -1537,6 +1538,7 @@ module.exports = function(DORA, config) {
     node.on("input", async function(msg) {
       const response = await node.flow.request({
         type: 'load',
+        action: 'defaults',
       });
       let t = msg;
       let key = null;
