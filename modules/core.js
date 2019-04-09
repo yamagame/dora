@@ -1577,4 +1577,31 @@ module.exports = function(DORA, config) {
     });
   }
   DORA.registerType('slide', QuizSlideFunc);
+
+  /**
+   *
+   *
+   */
+  function CommmandFunc(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      const { socket } = node.flow.options;
+      let command = options || msg.payload;
+      if (isTemplated) {
+          command = utils.mustache.render(command, msg);
+      }
+      if (typeof command !== 'undefined') {
+        socket.emit('command', {
+          command,
+          ...this.credential(),
+        }, (res) => {
+          if (!node.isAlive()) return;
+          node.next(msg);
+        });
+      } else {
+        node.next(msg);
+      }
+    });
+  }
+  DORA.registerType('command', CommmandFunc);
 }
