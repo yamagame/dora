@@ -893,6 +893,55 @@ module.exports = function(DORA, config) {
    *
    *
    */
+  function Translate(node, options) {
+    var isTemplated = (options||"").indexOf("{{") != -1;
+    node.on("input", async function(msg) {
+      let target = options;
+      if (target === null) {
+        target = 'en';
+      }
+      if (isTemplated) {
+        target = utils.mustache.render(target, msg);
+      }
+      let host = 'localhost';
+      let port = 3090;
+      if (typeof msg.dora !== 'undefined') {
+        if (typeof msg.dora.host !== 'undefined') {
+          host = msg.dora.host;
+        }
+        if (typeof msg.dora.port !== 'undefined') {
+          port = msg.dora.port;
+        }
+      }
+      const body = {
+        text: msg.payload,
+        target,
+      }
+      const headers = {};
+      headers['Content-Type'] = 'application/json';
+      let response = await fetch(`http://${host}:${port}/google/translate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      })
+      if (response.ok) {
+        const data = await response.json();
+        const translation = data.join('');
+        msg.translate = {
+          translation, 
+          ...body,
+        }
+        msg.payload = translation;
+      }
+      node.send(msg);
+    })
+  }
+  DORA.registerType('translate', Translate);
+
+  /*
+   *
+   *
+   */
   function WaitEvent(node, options) {
     node.nextLabel(options);
     node.on("input", function(msg) {
@@ -1416,7 +1465,7 @@ module.exports = function(DORA, config) {
               }
             }
             body.sheetId = msg.googleSheetId;
-            headers = {};
+            const headers = {};
             headers['Content-Type'] = 'application/json';
             let response = await fetch(`http://${host}:${port}/google/append-to-sheet`, {
               method: 'POST',
