@@ -695,7 +695,7 @@ module.exports = function(DORA, config) {
 
   /**
    *
-   * option no-time/half-title/font-small/style-answer
+   * option no-time/half-title/font-small/style-answer/style-deepblue
    */
   function QuizOpen(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;

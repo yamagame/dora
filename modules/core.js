@@ -825,6 +825,9 @@ module.exports = function(DORA, config) {
         if (typeof msg.voice.languageCode !== 'undefined') {
           params.languageCode = msg.voice.languageCode.split('/');
         }
+        if (typeof msg.voice.alternativeLanguageCodes !== 'undefined') {
+          params.alternativeLanguageCodes = msg.voice.alternativeLanguageCodes.split('/');
+        }
       }
       node.recording = true;
       socket.emit('speech-to-text', {
