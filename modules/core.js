@@ -896,12 +896,9 @@ module.exports = function(DORA, config) {
   function Translate(node, options) {
     var isTemplated = (options||"").indexOf("{{") != -1;
     node.on("input", async function(msg) {
-      let target = options;
-      if (target === null) {
-        target = 'en';
-      }
+      let opts = options;
       if (isTemplated) {
-        target = utils.mustache.render(target, msg);
+        opts = utils.mustache.render(opts, msg);
       }
       let host = 'localhost';
       let port = 3090;
@@ -915,7 +912,17 @@ module.exports = function(DORA, config) {
       }
       const body = {
         text: msg.payload,
-        target,
+      }
+      if (opts) {
+        opts = opts.split('/');
+        if (opts.length > 0) {
+          body.source = 'ja';
+          body.target = opts[0];
+          if (opts.length > 1) {
+            body.source = opts[0];
+            body.target = opts[1];
+          }
+        }
       }
       const headers = {};
       headers['Content-Type'] = 'application/json';
