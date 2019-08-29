@@ -323,6 +323,14 @@ msgオブジェクトに値を代入するには、コマンド行に続いて�
     - canceled
     - button
 
+- translate
+
+      /translate/ja/en
+
+  翻訳します。payloadに入っている文字を翻訳し、結果をpayloadに代入します。上記例では日本語を英語に翻訳します。英語から日本語に翻訳したい場合は以下のようにします。
+
+      /translate/en/ja
+
 - wait-event
 
       /wait-event
