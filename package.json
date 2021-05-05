@@ -17,7 +17,7 @@
     "mecab-async": "^0.1.2",
     "mustache": "^2.3.0",
     "node-fetch": "^2.1.2",
-    "socket.io-client": "^4.0.1",
+    "socket.io-client": "^2.1.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
