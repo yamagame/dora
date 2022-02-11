@@ -1,11 +1,11 @@
-const Flow = require('./libs/flow');
-const Node = require('./libs/node');
-const Core = require('./modules/core');
-const Operation = require('./modules/operation');
-const Quiz = require('./modules/quiz');
-const HTTP = require('./modules/http');
-const LED = require('./modules/led');
-const BAR = require('./modules/bar');
+const Flow = require("./libs/flow");
+const Node = require("./libs/node");
+const Core = require("./modules/core");
+const Operation = require("./modules/operation");
+const Quiz = require("./modules/quiz");
+const HTTP = require("./modules/http");
+const LED = require("./modules/led");
+const BAR = require("./modules/bar");
 
 const utils = require("./libs/utils");
 const util = require("util");
@@ -13,7 +13,7 @@ const util = require("util");
 const modules = [];
 
 class Dora {
-  constructor(config){
+  constructor(config) {
     this.config = config;
     this.labels = {};
     this.global = {};
@@ -21,17 +21,17 @@ class Dora {
     this.nodes = [];
     this.labelNodes = {};
     this.global = {};
-    this._modname = 'core';
+    this._modname = "core";
     Core(this);
-    this._modname = 'op';
+    this._modname = "op";
     Operation(this);
-    this._modname = 'quiz';
+    this._modname = "quiz";
     Quiz(this);
-    this._modname = 'http';
+    this._modname = "http";
     HTTP(this);
-    this._modname = 'led';
+    this._modname = "led";
     LED(this);
-    this._modname = 'bar';
+    this._modname = "bar";
     BAR(this);
     this.utils = utils;
     this._errorInfo = {};
@@ -53,63 +53,63 @@ class Dora {
 
   registerType(name, node) {
     this.types[`${this._modname}.${name}`] = node;
-    if (this._modname === 'core') {
+    if (this._modname === "core") {
       this.types[`${name}`] = node;
     }
   }
 
   initNode(lines, flow) {
-    const labels = {}
+    const labels = {};
     this.nodes = [];
     let speech = [];
-    lines.forEach( (lineObj, _i) => {
+    lines.forEach((lineObj, _i) => {
       const line = lineObj.out;
       const index = lineObj.index;
       const node = new Node(flow);
       this.exec_node = node;
-      node.line = (lineObj.code) ? lineObj.code : lineObj.out;
+      node.line = lineObj.code ? lineObj.code : lineObj.out;
       node.index = index;
       //コメント行
-      if (line.indexOf('//') === 0) {
-        this.types['comment'](node)
-        node.name = 'comment';
-      } else
+      if (line.indexOf("//") === 0) {
+        this.types["comment"](node);
+        node.name = "comment";
+      }
       //ラベル行
-      if (line.indexOf(':') === 0) {
+      else if (line.indexOf(":") === 0) {
         const m = line.match(/^:(.+)$/);
-        const l = m[1].split('/');
+        const l = m[1].split("/");
         if (labels[l[0]]) {
-          throw new Error('ラベルが重複しています.');
+          throw new Error("ラベルが重複しています.");
         }
         flow.labels[l[0]] = 0;
         labels[l[0]] = {
           node: node,
           line: index,
-          option: l.slice(1).join('/'),
+          option: l.slice(1).join("/"),
           value: 0,
-        }
-        this.types['label'](node, m[1]);
-        node.name = 'label';
-      } else
+        };
+        this.types["label"](node, m[1]);
+        node.name = "label";
+      }
       //ラベル行
-      if (line.indexOf('/label/') === 0) {
+      else if (line.indexOf("/label/") === 0) {
         const m = line.match(/^\/.+\/(.+)$/);
-        const l = m[1].split('/');
+        const l = m[1].split("/");
         if (labels[l[0]]) {
-          throw new Error('ラベルが重複しています.');
+          throw new Error("ラベルが重複しています.");
         }
         flow.labels[l[0]] = 0;
         labels[l[0]] = {
           node: node,
           line: index,
-          option: l.slice(1).join('/'),
+          option: l.slice(1).join("/"),
           value: 0,
-        }
-        this.types['label'](node, m[1]);
-        node.name = 'label';
-      } else
+        };
+        this.types["label"](node, m[1]);
+        node.name = "label";
+      }
       //コントロール行
-      if (line.indexOf('/') === 0) {
+      else if (line.indexOf("/") === 0) {
         const m = line.match(/^\/(.+)$/);
         const t = m[1].match(/(.+?)\/(.*)/);
         if (t) {
@@ -119,49 +119,52 @@ class Dora {
           var cmd = m[1];
           var opt = null;
         }
-        if (cmd.match(/^[\d\.]*$/) || cmd.match(/^[\d\.]*s$/) || cmd.match(/^[\d\.]*秒$/)) {
+        if (
+          cmd.match(/^[\d\.]*$/) ||
+          cmd.match(/^[\d\.]*s$/) ||
+          cmd.match(/^[\d\.]*秒$/)
+        ) {
           const t = cmd.match(/([\d\.]*)/);
-          this.types['delay'](node, t[1]);
-          node.name = 'delay';
+          this.types["delay"](node, t[1]);
+          node.name = "delay";
         } else {
           node.options = opt;
-          if (cmd.indexOf('.') === 0) {
+          if (cmd.indexOf(".") === 0) {
             const t = cmd.match(/\.(.+)/);
             if (opt !== null) {
-              this.types['set'](node, `${t[1]}/${opt}`);
-              node.name = 'set';
+              this.types["set"](node, `${t[1]}/${opt}`);
+              node.name = "set";
             } else {
-              this.types['get'](node, t[1]);
-              node.name = 'get';
+              this.types["get"](node, t[1]);
+              node.name = "get";
             }
-          } else
-          if (this.types[cmd]) {
+          } else if (this.types[cmd]) {
             this.types[cmd](node, opt);
             node.name = cmd;
           } else {
-            throw new Error('存在しないコントロールです.');
+            throw new Error("存在しないコントロールです.");
           }
         }
-      //スピーチ
+        //スピーチ
       } else {
-        this.types['text-to-speech'](node, line);
-        node.name = 'text-to-speech';
+        this.types["text-to-speech"](node, line);
+        node.name = "text-to-speech";
       }
       if (this.nodes.length > 0) {
-        const n = this.nodes[this.nodes.length-1];
-        n.nextNode = node
+        const n = this.nodes[this.nodes.length - 1];
+        n.nextNode = node;
       }
       this.nodes.push(node);
-    })
+    });
     {
       const node = new Node(flow);
-      node.line = '/end';
-      node.index = lines[lines.length-1].index;
-      this.types['end'](node);
-      node.name = 'end';
+      node.line = "/end";
+      node.index = lines[lines.length - 1].index;
+      this.types["end"](node);
+      node.name = "end";
       if (this.nodes.length > 0) {
-        const n = this.nodes[this.nodes.length-1];
-        n.nextNode = node
+        const n = this.nodes[this.nodes.length - 1];
+        n.nextNode = node;
       }
       this.nodes.push(node);
     }
@@ -171,22 +174,30 @@ class Dora {
 
   preprocessor(script) {
     const r = [];
-    const t = script.split('\r\n').join('\n').split('\n').map( (v,i) => {
-      if (v === '' && i > 0) {
-        return '/0s';
-      }
-      return v;
-    }).join('\n').replace(/(\/\*[^*]*\*\/)|(^\/\/.*)/g, '//').trim().split('\n');
-    t.forEach( (v, i) => {
+    const t = script
+      .split("\r\n")
+      .join("\n")
+      .split("\n")
+      .map((v, i) => {
+        if (v === "" && i > 0) {
+          return "/0s";
+        }
+        return v;
+      })
+      .join("\n")
+      .replace(/(\/\*[^*]*\*\/)|(^\/\/.*)/g, "//")
+      .trim()
+      .split("\n");
+    t.forEach((v, i) => {
       const m = v.match(/^\/joinAll\/(.+)$/);
       if (m) {
         const l = `:JOIN-${utils.generateId()}`;
-        r.push({ out: l, code: v, index: i, });
-        r.push({ out: '/join', code: v, index: i, });
-        r.push({ out: `/joinLoop/${l}`, code: v, index: i, });
-        r.push({ out: `/other/${m[1]}`, code: v, index: i, });
+        r.push({ out: l, code: v, index: i });
+        r.push({ out: "/join", code: v, index: i });
+        r.push({ out: `/joinLoop/${l}`, code: v, index: i });
+        r.push({ out: `/other/${m[1]}`, code: v, index: i });
       } else {
-        r.push({ out: v, index: i, });
+        r.push({ out: v, index: i });
       }
     });
     return r;
@@ -194,10 +205,10 @@ class Dora {
 
   async parse(script, filename, loader) {
     if (!script) {
-      throw new Error('スクリプトがありません。');
+      throw new Error("スクリプトがありません。");
       return;
     }
-    if (typeof filename !== 'string') {
+    if (typeof filename !== "string") {
       loader = filename;
     }
     const lines = this.preprocessor(script);
@@ -205,9 +216,9 @@ class Dora {
     const flow = this.initNode(lines, new Flow(this));
     flow.filename = filename;
     this.flow = flow;
-    Object.keys(this.labelNodes).forEach( key => {
+    Object.keys(this.labelNodes).forEach(key => {
       const _key = key.slice(1);
-      this.labelNodes[key].forEach( node => {
+      this.labelNodes[key].forEach(node => {
         if (this.labels[_key]) {
           node.wires.push(this.labels[_key].node);
         } else {
@@ -216,15 +227,15 @@ class Dora {
         }
       });
     });
-    this.nodes.forEach( node => {
+    this.nodes.forEach(node => {
       node.wires.push(node.nextNode);
     });
-    for (var i=0;i<this.nodes.length;i++) {
+    for (var i = 0; i < this.nodes.length; i++) {
       const node = this.nodes[i];
-      if (node.name == 'call') {
+      if (node.name == "call") {
         node.dora = async () => {
           const dora = new Dora(this.config);
-          modules.forEach( m => {
+          modules.forEach(m => {
             dora._modname = m.name;
             m.mod(dora, m.config);
           });
@@ -233,14 +244,14 @@ class Dora {
           await dora.parse(script, filename, loader);
           dora.flow.parentFlow = this.flow;
           return dora;
-        }
+        };
       }
     }
     this.loader = loader;
   }
 
   async eval(node, msg, config, callback) {
-    if (typeof msg.script === 'undefined') {
+    if (typeof msg.script === "undefined") {
       if (callback) callback(null, msg);
       return;
     }
@@ -248,16 +259,16 @@ class Dora {
     const _callback = (info, msg) => {
       msg.labels = labels;
       if (callback) callback(info, msg);
-    }
+    };
     const { script } = msg;
     const { socket } = this.flow.options;
     const dora = new Dora(config);
-    modules.forEach( m => {
+    modules.forEach(m => {
       dora._modname = m.name;
       m.mod(dora, m.config);
     });
-    const s = (typeof script === 'string') ? script : script.join('\n');
-    if (s === '') {
+    const s = typeof script === "string" ? script : script.join("\n");
+    if (s === "") {
       _callback(null, msg);
       return;
     }
@@ -268,18 +279,18 @@ class Dora {
         start: 0,
       },
       socket,
-    }
+    };
     dora.callback = (err, msg) => {
       _callback(err, msg);
-    }
+    };
     dora.flow.run(dora.nodes[0], msg);
   }
 
   play(msg, options, callback) {
-    if (!('callstack' in msg)) {
+    if (!("callstack" in msg)) {
       msg.callstack = [];
     }
-    if (!('credential' in this)) {
+    if (!("credential" in this)) {
       this.credential = {};
     }
     this._errorInfo = {};
@@ -290,31 +301,35 @@ class Dora {
     const _callback = (info, msg) => {
       if (msg) msg.labels = labels;
       if (callback) callback(info, msg);
-    }
+    };
     this.callback = _callback;
     this.flow.options = options;
-    const { range: {start, end} } = options;
+    const {
+      range: { start, end },
+    } = options;
     if (start) {
       if (end && start > end) {
         this._errorInfo = {
           lineNumber: 0,
-          code: '範囲実行エラー',
+          code: "範囲実行エラー",
           reason: `無効な実行範囲です。開始行:${start} 終了行:${end}`,
-        }
+        };
         return _callback(this._errorInfo, msg);
       }
-      if (!this.nodes.some( v => {
-        if (v.index == start) {
-          this.flow.run(v, msg);
-          return true;
-        }
-        return false;
-      })) {
+      if (
+        !this.nodes.some(v => {
+          if (v.index == start) {
+            this.flow.run(v, msg);
+            return true;
+          }
+          return false;
+        })
+      ) {
         this._errorInfo = {
           lineNumber: 0,
-          code: '範囲実行エラー',
+          code: "範囲実行エラー",
           reason: `${start}行がありません。`,
-        }
+        };
         return _callback(this._errorInfo, msg);
       }
     } else {
@@ -328,19 +343,23 @@ class Dora {
     }
   }
 
-  run(flow) {
-  }
+  run(flow) {}
 
   err(err) {
     this.stop();
     if (this.callback) this.callback(err, null);
   }
-  
+
   exec(flow, node, msg) {
     if (flow.isRunning()) {
-      const { range: {start, end} } = flow.options;
-      let exitflag = ((typeof end !== 'undefined' && node.index >= end) || (typeof start !== 'undefined' && node.index < start));
-      if (typeof start !== 'undefined' && typeof end === 'undefined') exitflag = false;
+      const {
+        range: { start, end },
+      } = flow.options;
+      let exitflag =
+        (typeof end !== "undefined" && node.index >= end) ||
+        (typeof start !== "undefined" && node.index < start);
+      if (typeof start !== "undefined" && typeof end === "undefined")
+        exitflag = false;
       if (exitflag) {
         if (flow.runnode == 0 || flow.isRunning() == false) {
           flow.stop();
@@ -390,7 +409,7 @@ class Dora {
     if (flow && node) {
       node.down();
       flow.down();
-      for (var i=0;i<labels.length;i++) {
+      for (var i = 0; i < labels.length; i++) {
         const label = labels[i].slice(1);
         if (this.labels[label]) {
           this.exec(flow, this.labels[label].node, msg);
@@ -419,16 +438,16 @@ class Dora {
     }
   }
 
-  nextLabel(node, label, index=0) {
-    if (typeof label === 'undefined' || label === null) return [];
+  nextLabel(node, label, index = 0) {
+    if (typeof label === "undefined" || label === null) return [];
     if (!util.isArray(label)) {
-      label = label.split('/');
+      label = label.split("/");
     }
     label = label.slice(index);
     var numLabels = label.length;
     for (var i = 0; i < numLabels; i++) {
       const _label = label[i].trim();
-      if (_label.indexOf(':') === 0) {
+      if (_label.indexOf(":") === 0) {
         if (!this.labelNodes[_label]) {
           this.labelNodes[_label] = [];
         }
@@ -441,10 +460,10 @@ class Dora {
   errorInfo() {
     if (this.exec_node) {
       return {
-        lineNumber: this.exec_node.index+1,
+        lineNumber: this.exec_node.index + 1,
         code: this.exec_node.line,
         reason: this.exec_node.reason,
-      }
+      };
     }
     return this._errorInfo;
   }
@@ -453,34 +472,34 @@ class Dora {
 module.exports = Dora;
 
 if (require.main === module) {
-  const path = require('path');
+  const path = require("path");
   const host = process.argv[2];
-  const io = require('socket.io-client');
+  const io = require("socket.io-client");
   const socket = io(host);
-  const fetch = require('node-fetch');
+  const fetch = require("node-fetch");
   const dorascript = process.argv[3];
   const basedir = path.dirname(dorascript);
 
-  const fs = require('fs');
+  const fs = require("fs");
   const data = fs.readFileSync(dorascript);
   const dora = new Dora();
 
   //ロボットへのHTTPリクエスト
-  dora.request = async function(command, options, params) {
+  dora.request = async function (command, options, params) {
     var len = 0;
-    if (typeof command !== 'undefined') len += 1;
-    if (typeof options !== 'undefined') len += 1;
-    if (typeof params !== 'undefined') len += 1;
+    if (typeof command !== "undefined") len += 1;
+    if (typeof options !== "undefined") len += 1;
+    if (typeof params !== "undefined") len += 1;
     if (len <= 0) {
-      throw new Error('Illegal arguments.');
+      throw new Error("Illegal arguments.");
     }
     const opt = {
-      method: 'POST',
-      restype: 'json',
-    }
+      method: "POST",
+      restype: "json",
+    };
     if (len == 1) {
       params = command;
-      command = 'command';
+      command = "command";
     }
     if (len == 2) {
       params = options;
@@ -491,41 +510,48 @@ if (require.main === module) {
     }
     const res = await fetch(`${host}/${command}`, {
       method: opt.method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
     });
-    if (opt.restype === 'json') {
-      const json = await res.json()
+    if (opt.restype === "json") {
+      const json = await res.json();
       return json;
     }
     return await res.text();
-  }
+  };
 
   //スクリプトパース
-  dora.parse(data.toString(), dorascript, (filename, callback) => {
-    //callコマンドのファイルを読み込む処理
-    fs.readFile(path.join(basedir, filename), (err, data) => {
-      if (err) throw err;
-      callback(data.toString());
-    });
-  }).then(()=> {
-    //スクリプト実行
-    dora.play({ payload: 'OK' }, {
-      range: {
-        start: 0,
-      },
-      socket,
-    }, (err, msg) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log(msg);
-      }
+  dora
+    .parse(data.toString(), dorascript, (filename, callback) => {
+      //callコマンドのファイルを読み込む処理
+      fs.readFile(path.join(basedir, filename), (err, data) => {
+        if (err) throw err;
+        callback(data.toString());
+      });
+    })
+    .then(() => {
+      //スクリプト実行
+      dora.play(
+        { payload: "OK" },
+        {
+          range: {
+            start: 0,
+          },
+          socket,
+        },
+        (err, msg) => {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log(msg);
+          }
+          process.exit();
+        }
+      );
+    })
+    .catch(err => {
+      console.error(err);
+      console.error(dora.errorInfo());
       process.exit();
     });
-  }).catch((err) => {
-    console.error(err);
-    console.error(dora.errorInfo());
-    process.exit();
-  });;
 }

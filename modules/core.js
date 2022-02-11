@@ -1,7 +1,7 @@
-const utils = require('../libs/utils');
-const path = require('path');
-const mecab = require('../libs/mecab');
-const fetch = require('node-fetch');
+const utils = require("../libs/utils");
+const path = require("path");
+const mecab = require("../libs/mecab");
+const fetch = require("node-fetch");
 const {
   QuizOK,
   QuizOKImage,
@@ -9,48 +9,47 @@ const {
   QuizNGImage,
   QuizCategory,
   QuizSlide,
-} = require('./quiz');
+} = require("./quiz");
 
-module.exports = function(DORA, config) {
-
+module.exports = function (DORA, config) {
   /**
    *
    *
    */
   function QuizNow(node, options) {
-    node.on("input", async function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+    node.on("input", async function (msg) {
+      if (typeof msg.quiz === "undefined") msg.quiz = utils.quizObject();
       var now = new Date();
       msg.now = {
         year: now.getFullYear(),
-        month: now.getMonth()+1,
+        month: now.getMonth() + 1,
         date: now.getDate(),
         hours: now.getHours(),
         minutes: now.getMinutes(),
         day: now.getDay(),
-      }
+      };
       node.send(msg);
     });
   }
-  DORA.registerType('now', QuizNow);
+  DORA.registerType("now", QuizNow);
 
   /*
    *
    *
    */
   function CoreLog(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
       const { socket } = node.flow.options;
-      let logstr = '';
-      logstr += '';
+      let logstr = "";
+      logstr += "";
       try {
-        var message = options || JSON.stringify(msg, null, '  ');
+        var message = options || JSON.stringify(msg, null, "  ");
         if (isTemplated) {
-            message = utils.mustache.render(message, msg);
+          message = utils.mustache.render(message, msg);
         }
         logstr += message;
-      } catch(err) {
+      } catch (err) {
         logstr += options;
       }
       console.log(`log-->\n${logstr}\n<--log`);
@@ -58,41 +57,41 @@ module.exports = function(DORA, config) {
       node.send(msg);
     });
   }
-  DORA.registerType('log', CoreLog);
+  DORA.registerType("log", CoreLog);
 
   /*
    *
    *
    */
   function CoreError(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       var message = options || msg.payload;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
       node.err(new Error(message));
     });
   }
-  DORA.registerType('error', CoreError);
+  DORA.registerType("error", CoreError);
 
   /*
    *
    *
    */
   function CoreComment(node, options) {
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       node.send(msg);
     });
   }
-  DORA.registerType('comment', CoreComment);
+  DORA.registerType("comment", CoreComment);
 
   /*
    *
    *
    */
   function CoreLabel(node, options) {
-    const p = options.split('/');
+    const p = options.split("/");
     const name = p[0];
     const args = p.slice(1);
     const m = name.match(/^\:(.+)/);
@@ -100,178 +99,193 @@ module.exports = function(DORA, config) {
     if (m) {
       node.labelName = m[1];
     }
-    node.on("input", function(msg) {
-      if (typeof this.flow.labels[node.labelName] === 'undefined') {
+    node.on("input", function (msg) {
+      if (typeof this.flow.labels[node.labelName] === "undefined") {
         this.flow.labels[node.labelName] = 0;
       }
-      if (typeof msg.labels[node.labelName] !== 'undefined') {
+      if (typeof msg.labels[node.labelName] !== "undefined") {
         this.flow.labels[node.labelName] = msg.labels[node.labelName];
       }
-      this.flow.labels[node.labelName] ++;
+      this.flow.labels[node.labelName]++;
       msg.labels = this.flow.labels;
       node.send(msg);
     });
   }
-  DORA.registerType('label', CoreLabel);
+  DORA.registerType("label", CoreLabel);
 
   /*
    *
    *
    */
   function CoreIf(node, options) {
-    const params = options.split('/');
+    const params = options.split("/");
     var string = params[0];
-    var isTemplated = (string||"").indexOf("{{") != -1;
+    var isTemplated = (string || "").indexOf("{{") != -1;
     if (params.length > 1) {
-      node.nextLabel(params.slice(1).join('/'));
+      node.nextLabel(params.slice(1).join("/"));
     }
-    node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+    node.on("input", function (msg) {
+      if (typeof msg.quiz === "undefined") msg.quiz = utils.quizObject();
       let message = string;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
-      if (typeof msg.payload !== 'undefined' && msg.payload.toString().toLowerCase().indexOf(message.trim().toLowerCase()) >= 0) {
+      if (
+        typeof msg.payload !== "undefined" &&
+        msg.payload
+          .toString()
+          .toLowerCase()
+          .indexOf(message.trim().toLowerCase()) >= 0
+      ) {
         node.jump(msg);
-      }　else {
+      } else {
         node.next(msg);
       }
     });
   }
-  DORA.registerType('if', CoreIf);
+  DORA.registerType("if", CoreIf);
 
   /*
    *
    *
    */
   function CoreGoto(node, options) {
-    if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
-    node.on("input", function(msg) {
+    if (node.nextLabel(options).length <= 0)
+      throw new Error("ラベルを指定してください。");
+    node.on("input", function (msg) {
       node.jump(msg);
     });
   }
-  DORA.registerType('goto', CoreGoto);
+  DORA.registerType("goto", CoreGoto);
 
   /*
    *
    *
    */
   function CoreGosub(node, options) {
-    if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
-    node.on("input", function(msg, stack) {
-      stack.push(node.wires[node.wires.length-1]);
+    if (node.nextLabel(options).length <= 0)
+      throw new Error("ラベルを指定してください。");
+    node.on("input", function (msg, stack) {
+      stack.push(node.wires[node.wires.length - 1]);
       node.jump(msg);
     });
   }
-  DORA.registerType('gosub', CoreGosub);
+  DORA.registerType("gosub", CoreGosub);
 
   /*
    *
    *
    */
   function CoreReturn(node, options) {
-    node.on("input", function(msg, stack) {
+    node.on("input", function (msg, stack) {
       if (stack.length <= 0) {
-        return node.err(new Error('gosubが呼ばれていません'));
+        return node.err(new Error("gosubが呼ばれていません"));
       }
       node.wires = [stack.pop()];
       node.send(msg);
     });
   }
-  DORA.registerType('return', CoreReturn);
+  DORA.registerType("return", CoreReturn);
 
   /*
    *
    *
    */
   function CoreGotoRandom(node, options) {
-    if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
+    if (node.nextLabel(options).length <= 0)
+      throw new Error("ラベルを指定してください。");
     node._counter = 0;
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       if (node._counter === 0) {
-        node._randtable = node.wires.slice(0,node.wires.length-1).map( (v, i) => {
-          return i;
-        });
-        for (var i=0;i<node.wires.length*3;i++) {
-          const a = utils.randInteger(0, node.wires.length-1);
-          const b = utils.randInteger(0, node.wires.length-1);
+        node._randtable = node.wires
+          .slice(0, node.wires.length - 1)
+          .map((v, i) => {
+            return i;
+          });
+        for (var i = 0; i < node.wires.length * 3; i++) {
+          const a = utils.randInteger(0, node.wires.length - 1);
+          const b = utils.randInteger(0, node.wires.length - 1);
           const c = node._randtable[a];
           node._randtable[a] = node._randtable[b];
           node._randtable[b] = c;
         }
       }
       const n = node._randtable[node._counter];
-      const t = node.wires.map( v => {
+      const t = node.wires.map(v => {
         return null;
       });
       t[n] = msg;
-      node._counter ++;
-      if (node._counter >= node.wires.length-1) {
+      node._counter++;
+      if (node._counter >= node.wires.length - 1) {
         node._counter = 0;
       }
       node.send(t);
     });
   }
-  DORA.registerType('goto.random', CoreGotoRandom);
+  DORA.registerType("goto.random", CoreGotoRandom);
 
   /*
    *
    *
    */
   function CoreGotoSequence(node, options) {
-    if (node.nextLabel(options).length <= 0) throw new Error('ラベルを指定してください。')
+    if (node.nextLabel(options).length <= 0)
+      throw new Error("ラベルを指定してください。");
     node._counter = 0;
-    node.on("input", function(msg) {
-      const t = node.wires.map( v => {
+    node.on("input", function (msg) {
+      const t = node.wires.map(v => {
         return null;
       });
       t[node._counter] = msg;
-      node._counter ++;
-      if (node._counter >= node.wires.length-1) {
+      node._counter++;
+      if (node._counter >= node.wires.length - 1) {
         node._counter = 0;
       }
       node.send(t);
     });
   }
-  DORA.registerType('goto.sequece', CoreGotoSequence);
-  DORA.registerType('goto.sequence', CoreGotoSequence);
+  DORA.registerType("goto.sequece", CoreGotoSequence);
+  DORA.registerType("goto.sequence", CoreGotoSequence);
 
   /*
    *
    *
    */
   function CoreDelay(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
-      let rate = (typeof msg.defaultInterval === 'undefined') ? 1 : parseFloat(msg.defaultInterval);
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
+      let rate =
+        typeof msg.defaultInterval === "undefined"
+          ? 1
+          : parseFloat(msg.defaultInterval);
       let delay = options;
       if (isTemplated) {
         delay = utils.mustache.render(delay, msg);
       }
       if (msg.silence) {
-        msg.payload += '\n';
+        msg.payload += "\n";
       } else {
-        if (delay === '0') {
-          await utils.timeout(parseInt(1000*rate));
+        if (delay === "0") {
+          await utils.timeout(parseInt(1000 * rate));
         } else {
-          await utils.timeout(parseInt(1000*parseFloat(delay)*rate));
+          await utils.timeout(parseInt(1000 * parseFloat(delay) * rate));
         }
       }
       node.send(msg);
     });
   }
-  DORA.registerType('delay', CoreDelay);
+  DORA.registerType("delay", CoreDelay);
 
   /*
    *
    *
    */
   function CoreEnd(node, options) {
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       node.end(null, msg);
     });
   }
-  DORA.registerType('end', CoreEnd);
+  DORA.registerType("end", CoreEnd);
 
   /*
    *
@@ -279,16 +293,16 @@ module.exports = function(DORA, config) {
    */
   function CoreFork(node, options) {
     node.nextLabel(options);
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       var forkid = utils.generateId();
       if (!node.global()._forks) {
         node.global()._forks = {};
       }
       if (!node.global()._forks[forkid]) {
-        node.global()._forks[forkid] = {}
+        node.global()._forks[forkid] = {};
       }
       var forks = node.global()._forks[forkid];
-      var numOutputs = node.wires.length-1;
+      var numOutputs = node.wires.length - 1;
       if (!msg._forks) msg._forks = [];
       msg._forks.push(forkid);
       forks.numWire = numOutputs;
@@ -298,41 +312,41 @@ module.exports = function(DORA, config) {
       node.fork(msg);
     });
   }
-  DORA.registerType('fork', CoreFork);
+  DORA.registerType("fork", CoreFork);
 
   /*
    *
    *
    */
   function CorePush(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       if (!msg.stack) msg.stack = [];
       let message = options;
       if (message === null) {
         message = msg.payload;
       }
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
       msg.stack.push(message);
       node.send(msg);
     });
   }
-  DORA.registerType('push', CorePush);
+  DORA.registerType("push", CorePush);
 
   /*
    *
    *
    */
   function CorePop(node, options) {
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       if (!msg.stack) msg.stack = [];
       msg.payload = msg.stack.pop();
       node.send(msg);
     });
   }
-  DORA.registerType('pop', CorePop);
+  DORA.registerType("pop", CorePop);
 
   /*
    *
@@ -340,13 +354,16 @@ module.exports = function(DORA, config) {
    */
   function CoreJoin(node, options) {
     node.nextLabel(options);
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       let freeze = false;
       if (msg._forks && msg._forks.length > 0) {
-        const forkid = msg._forks[msg._forks.length-1];
+        const forkid = msg._forks[msg._forks.length - 1];
         if (this.global()._forks && this.global()._forks[forkid]) {
           var forks = this.global()._forks[forkid];
-          if (typeof msg.topicPriority !== 'undefined' && forks.priority < msg.topicPriority) {
+          if (
+            typeof msg.topicPriority !== "undefined" &&
+            forks.priority < msg.topicPriority
+          ) {
             forks.priority = msg.topicPriority;
             forks.name = msg.topic;
             forks.msg = utils.clone(msg);
@@ -359,11 +376,14 @@ module.exports = function(DORA, config) {
             }
             freeze = true;
           }
-          forks.numWire --;
+          forks.numWire--;
           if (forks.numWire <= 0) {
             msg._forks.pop();
-            const forkid = msg._forks[msg._forks.length-1];
-            if (typeof forks.msg.topic !== 'undefined' && forks.msg.topicPriority !== 0) {
+            const forkid = msg._forks[msg._forks.length - 1];
+            if (
+              typeof forks.msg.topic !== "undefined" &&
+              forks.msg.topicPriority !== 0
+            ) {
               forks.msg._forks = msg._forks;
               if (node.wires.length > 1) {
                 forks.node.jump(forks.msg);
@@ -394,7 +414,7 @@ module.exports = function(DORA, config) {
       }
     });
   }
-  DORA.registerType('join', CoreJoin);
+  DORA.registerType("join", CoreJoin);
 
   /*
    *
@@ -402,7 +422,7 @@ module.exports = function(DORA, config) {
    */
   function CoreJoinLoop(node, options) {
     node.nextLabel(options);
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       if (msg._forks && msg._forks.length > 0) {
         node.jump(msg);
       } else {
@@ -410,36 +430,38 @@ module.exports = function(DORA, config) {
       }
     });
   }
-  DORA.registerType('joinLoop', CoreJoinLoop);
-  DORA.registerType('join.loop', CoreJoinLoop);
+  DORA.registerType("joinLoop", CoreJoinLoop);
+  DORA.registerType("join.loop", CoreJoinLoop);
 
   /*
    *
    *
    */
   function CorePriority(node, options) {
-    node.on("input", function(msg) {
-      if (typeof msg.topicPriority === 'undefined') {
+    node.on("input", function (msg) {
+      if (typeof msg.topicPriority === "undefined") {
         msg.topicPriority = 0;
       }
-      msg.topicPriority = msg.topicPriority + ((options === null) ? 10 : parseInt(options));
+      msg.topicPriority =
+        msg.topicPriority + (options === null ? 10 : parseInt(options));
       node.send(msg);
     });
   }
-  DORA.registerType('priority', CorePriority);
+  DORA.registerType("priority", CorePriority);
 
   /*
    *
    *
    */
   function CoreTopic(node, options) {
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       msg.topic = options;
-      msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
+      msg.topicPriority =
+        typeof msg.topicPriority !== "undefined" ? msg.topicPriority : 0;
       node.send(msg);
     });
   }
-  DORA.registerType('topic', CoreTopic);
+  DORA.registerType("topic", CoreTopic);
 
   /*
    *
@@ -447,7 +469,7 @@ module.exports = function(DORA, config) {
    */
   function CoreOther(node, options) {
     node.nextLabel(options);
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       if (msg.topicPriority > 0) {
         node.next(msg);
       } else {
@@ -455,16 +477,16 @@ module.exports = function(DORA, config) {
       }
     });
   }
-  DORA.registerType('other', CoreOther);
+  DORA.registerType("other", CoreOther);
 
   /*
    *
    *
    */
   function Sound(type) {
-    return function(node, options) {
-      var isTemplated = (options||"").indexOf("{{") != -1;
-      node.on("input", async function(msg) {
+    return function (node, options) {
+      var isTemplated = (options || "").indexOf("{{") != -1;
+      node.on("input", async function (msg) {
         let message = options;
         if (isTemplated) {
           message = DORA.utils.mustache.render(message, msg);
@@ -475,39 +497,39 @@ module.exports = function(DORA, config) {
         });
         node.send(msg);
       });
-    }
+    };
   }
-  DORA.registerType('sound', Sound('sound'));
-  DORA.registerType('sound.sync', Sound('sound.sync'));
+  DORA.registerType("sound", Sound("sound"));
+  DORA.registerType("sound.sync", Sound("sound.sync"));
 
   /*
    *
    *
    */
   function CoreSet(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    const p = options.split('/');
-    const field = p[0].split('.').filter( v => v !== '' );
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    const p = options.split("/");
+    const field = p[0].split(".").filter(v => v !== "");
     if (p.length < 2) {
-      throw new Error('パラメータがありません。');
+      throw new Error("パラメータがありません。");
     }
-    node.on("input", async function(msg) {
+    node.on("input", async function (msg) {
       let t = msg;
       let key = null;
       let v = msg;
-      field.forEach( f => {
-        if (typeof t === 'undefined' || typeof t !== 'object') {
+      field.forEach(f => {
+        if (typeof t === "undefined" || typeof t !== "object") {
           v[key] = {};
           t = v[key];
         }
         key = f;
-        v = t
+        v = t;
         t = t[f];
       });
-      if (typeof v !== 'undefined' && typeof key !== 'undefined') {
-        const val = (v) => {
+      if (typeof v !== "undefined" && typeof key !== "undefined") {
+        const val = v => {
           if (utils.isNumeric(v)) {
-            if (v.indexOf('.') >= 0) {
+            if (v.indexOf(".") >= 0) {
               return parseFloat(v);
             } else {
               return parseInt(v);
@@ -517,11 +539,11 @@ module.exports = function(DORA, config) {
             v = utils.mustache.render(v, msg);
           }
           return v;
-        }
-        v[key]= val(p.slice(1).join('/'));
+        };
+        v[key] = val(p.slice(1).join("/"));
       }
       if (msg.labels) {
-        Object.keys(msg.labels).forEach( key => {
+        Object.keys(msg.labels).forEach(key => {
           const v = msg.labels[key];
           this.flow.labels[key] = v;
         });
@@ -529,41 +551,41 @@ module.exports = function(DORA, config) {
       node.send(msg);
     });
   }
-  DORA.registerType('set', CoreSet);
+  DORA.registerType("set", CoreSet);
 
   /*
    *
    *
    */
   function CoreSetString(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    const p = options.split('/');
-    const field = p[0].split('.').filter( v => v !== '' );
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    const p = options.split("/");
+    const field = p[0].split(".").filter(v => v !== "");
     if (p.length < 2) {
-      throw new Error('パラメータがありません。');
+      throw new Error("パラメータがありません。");
     }
-    node.on("input", async function(msg) {
+    node.on("input", async function (msg) {
       let t = msg;
       let key = null;
       let v = msg;
-      field.forEach( f => {
-        if (typeof t === 'undefined' || typeof t !== 'object') {
+      field.forEach(f => {
+        if (typeof t === "undefined" || typeof t !== "object") {
           v[key] = {};
           t = v[key];
         }
         key = f;
-        v = t
+        v = t;
         t = t[f];
       });
-      if (typeof v !== 'undefined' && typeof key !== 'undefined') {
-        let message = p.slice(1).join('/');
+      if (typeof v !== "undefined" && typeof key !== "undefined") {
+        let message = p.slice(1).join("/");
         if (isTemplated) {
           message = utils.mustache.render(message, msg);
         }
-        v[key]= message;
+        v[key] = message;
       }
       if (msg.labels) {
-        Object.keys(msg.labels).forEach( key => {
+        Object.keys(msg.labels).forEach(key => {
           const v = msg.labels[key];
           this.flow.labels[key] = v;
         });
@@ -571,52 +593,52 @@ module.exports = function(DORA, config) {
       node.send(msg);
     });
   }
-  DORA.registerType('setString', CoreSetString);
-  DORA.registerType('set.string', CoreSetString);
+  DORA.registerType("setString", CoreSetString);
+  DORA.registerType("set.string", CoreSetString);
 
   /*
    *
    *
    */
   function CoreSetNumber(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    const p = options.split('/');
-    const field = p[0].split('.').filter( v => v !== '' );
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    const p = options.split("/");
+    const field = p[0].split(".").filter(v => v !== "");
     if (p.length < 2) {
-      throw new Error('パラメータがありません。');
+      throw new Error("パラメータがありません。");
     }
-    node.on("input", async function(msg) {
+    node.on("input", async function (msg) {
       let t = msg;
       let key = null;
       let v = msg;
-      field.forEach( f => {
-        if (typeof t === 'undefined' || typeof t !== 'object') {
+      field.forEach(f => {
+        if (typeof t === "undefined" || typeof t !== "object") {
           v[key] = {};
           t = v[key];
         }
         key = f;
-        v = t
+        v = t;
         t = t[f];
       });
-      if (typeof v !== 'undefined' && typeof key !== 'undefined') {
-        const val = (v) => {
+      if (typeof v !== "undefined" && typeof key !== "undefined") {
+        const val = v => {
           if (utils.isNumeric(v)) {
-            if (v.indexOf('.') >= 0) {
+            if (v.indexOf(".") >= 0) {
               return parseFloat(v);
             } else {
               return parseInt(v);
             }
           }
-          node.err(new Error('数字ではありません。'));
-        }
-        let message = p.slice(1).join('/');
+          node.err(new Error("数字ではありません。"));
+        };
+        let message = p.slice(1).join("/");
         if (isTemplated) {
           message = utils.mustache.render(message, msg);
         }
-        v[key]= val(message);
+        v[key] = val(message);
       }
       if (msg.labels) {
-        Object.keys(msg.labels).forEach( key => {
+        Object.keys(msg.labels).forEach(key => {
           const v = msg.labels[key];
           this.flow.labels[key] = v;
         });
@@ -624,45 +646,45 @@ module.exports = function(DORA, config) {
       node.send(msg);
     });
   }
-  DORA.registerType('setNumber', CoreSetNumber);
-  DORA.registerType('set.number', CoreSetNumber);
+  DORA.registerType("setNumber", CoreSetNumber);
+  DORA.registerType("set.number", CoreSetNumber);
 
   /*
    *
    *
    */
   function CoreGet(node, options) {
-    const p = options.split('/');
-    const field = p[0].split('.');
-    node.on("input", async function(msg) {
+    const p = options.split("/");
+    const field = p[0].split(".");
+    node.on("input", async function (msg) {
       let t = msg;
-      field.forEach( f => {
-        if (f !== '') {
-          if (typeof t !== 'undefined') {
+      field.forEach(f => {
+        if (f !== "") {
+          if (typeof t !== "undefined") {
             t = t[f];
           }
         }
       });
-      if (typeof t !== 'undefined') {
+      if (typeof t !== "undefined") {
         msg.payload = t;
       }
       node.send(msg);
     });
   }
-  DORA.registerType('get', CoreGet);
+  DORA.registerType("get", CoreGet);
 
   /*
    *
    *
    */
   function CoreChange(node, options) {
-    const params = options.split('/');
+    const params = options.split("/");
     if (params.length < 2) {
-      throw new Error('パラメータがありません。');
+      throw new Error("パラメータがありません。");
     }
-    var isTemplated1 = (params[0]||"").indexOf("{{") != -1;
-    var isTemplated2 = (params[1]||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
+    var isTemplated1 = (params[0] || "").indexOf("{{") != -1;
+    var isTemplated2 = (params[1] || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
       let p1 = params[0];
       let p2 = params[1];
       if (isTemplated1) {
@@ -671,18 +693,21 @@ module.exports = function(DORA, config) {
       if (isTemplated2) {
         p2 = utils.mustache.render(p2, msg);
       }
-      if (p1.indexOf('.') == 0) {
+      if (p1.indexOf(".") == 0) {
         p1 = p1.slice(1);
       }
-      if (p2.indexOf('.') == 0) {
+      if (p2.indexOf(".") == 0) {
         p2 = p2.slice(1);
       }
       const getField = (msg, field) => {
         let val = msg;
         let key = null;
-        field.split('.').forEach( f => {
+        field.split(".").forEach(f => {
           if (key) {
-            if (typeof val[key] === 'undefined' || typeof val[key] !== 'object') {
+            if (
+              typeof val[key] === "undefined" ||
+              typeof val[key] !== "object"
+            ) {
               val[key] = {};
             }
             val = val[key];
@@ -690,7 +715,7 @@ module.exports = function(DORA, config) {
           key = f;
         });
         return { val, key };
-      }
+      };
       const v1 = getField(msg, p1);
       const v2 = getField(msg, p2);
       if (v1 && v2) {
@@ -699,99 +724,103 @@ module.exports = function(DORA, config) {
       node.send(msg);
     });
   }
-  DORA.registerType('change', CoreChange);
+  DORA.registerType("change", CoreChange);
 
   /*
    *
    *
    */
   function TextToSpeech(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
       const { socket } = node.flow.options;
       var message = options || msg.payload;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
       const params = {};
-      if (typeof msg.speech !== 'undefined') {
+      if (typeof msg.speech !== "undefined") {
         //aquesTalk Pi向けパラメータ
-        if (typeof msg.speech.speed !== 'undefined') {
+        if (typeof msg.speech.speed !== "undefined") {
           params.speed = msg.speech.speed;
         }
-        if (typeof msg.speech.volume !== 'undefined') {
+        if (typeof msg.speech.volume !== "undefined") {
           params.volume = msg.speech.volume;
         }
-        if (typeof msg.speech.voice !== 'undefined') {
+        if (typeof msg.speech.voice !== "undefined") {
           params.voice = msg.speech.voice;
         }
         //google text-to-speech向けパラメータ
-        if (typeof msg.speech.languageCode !== 'undefined') {
+        if (typeof msg.speech.languageCode !== "undefined") {
           params.languageCode = msg.speech.languageCode;
         }
-        if (typeof msg.speech.audioEncoding !== 'undefined') {
+        if (typeof msg.speech.audioEncoding !== "undefined") {
           params.audioEncoding = msg.speech.audioEncoding;
         }
-        if (typeof msg.speech.gender !== 'undefined') {
+        if (typeof msg.speech.gender !== "undefined") {
           params.ssmlGender = msg.speech.gender;
         }
-        if (typeof msg.speech.rate !== 'undefined') {
+        if (typeof msg.speech.rate !== "undefined") {
           params.speakingRate = msg.speech.rate;
         }
-        if (typeof msg.speech.pitch !== 'undefined') {
+        if (typeof msg.speech.pitch !== "undefined") {
           params.pitch = msg.speech.pitch;
         }
-        if (typeof msg.speech.name !== 'undefined') {
+        if (typeof msg.speech.name !== "undefined") {
           params.name = msg.speech.name;
         }
-        if (typeof msg.speech.host !== 'undefined') {
+        if (typeof msg.speech.host !== "undefined") {
           params.host = msg.speech.host;
         }
         //AWS Polly向けパラメータ
-        if (typeof msg.speech.voiceId !== 'undefined') {
+        if (typeof msg.speech.voiceId !== "undefined") {
           params.voiceId = msg.speech.voiceId;
         }
       }
       if (msg.silence) {
-        if (msg.payload !== '') {
-          msg.payload += '\n';
+        if (msg.payload !== "") {
+          msg.payload += "\n";
         }
         msg.payload += message;
         node.send(msg);
       } else {
-        socket.emit('text-to-speech', {
-          message,
-          ...params,
-          ...this.credential(),
-        }, (res) => {
-          if (!node.isAlive()) return;
-          msg.payload = message;
-          node.send(msg);
-        });
+        socket.emit(
+          "text-to-speech",
+          {
+            message,
+            ...params,
+            ...this.credential(),
+          },
+          res => {
+            if (!node.isAlive()) return;
+            msg.payload = message;
+            node.send(msg);
+          }
+        );
       }
     });
   }
-  DORA.registerType('text-to-speech', TextToSpeech);
+  DORA.registerType("text-to-speech", TextToSpeech);
 
   /**
    * 発話をキャンセルして、発話文をpayloadにテキストとして追加する
    * silenceしたら、silence.endすること。
    */
   function Silence(type) {
-    return function(node, options) {
-      node.on("input", async function(msg) {
-        if (type === 'start') {
+    return function (node, options) {
+      node.on("input", async function (msg) {
+        if (type === "start") {
           msg.silence = true;
-          msg.payload = '';
+          msg.payload = "";
         } else {
           delete msg.silence;
         }
         node.send(msg);
       });
-    }
+    };
   }
-  DORA.registerType('silence', Silence('start'));
-  DORA.registerType('silence.end', Silence('end'));
+  DORA.registerType("silence", Silence("start"));
+  DORA.registerType("silence.end", Silence("end"));
 
   /*
    *
@@ -799,124 +828,124 @@ module.exports = function(DORA, config) {
    */
   function SpeechToText(node, options) {
     node.nextLabel(options);
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       const { socket } = node.flow.options;
       const params = {
         timeout: 30000,
-        sensitivity: 'keep',
-        level: 'keep',
+        sensitivity: "keep",
+        level: "keep",
       };
-      if (typeof msg.timeout !== 'undefined') {
+      if (typeof msg.timeout !== "undefined") {
         params.timeout = msg.timeout;
       }
-      if (typeof msg.sensitivity !== 'undefined') {
+      if (typeof msg.sensitivity !== "undefined") {
         params.sensitivity = msg.sensitivity;
       }
-      if (typeof msg.voice !== 'undefined') {
-        if (typeof msg.voice.timeout !== 'undefined') {
+      if (typeof msg.voice !== "undefined") {
+        if (typeof msg.voice.timeout !== "undefined") {
           params.timeout = msg.voice.timeout;
         }
-        if (typeof msg.voice.sensitivity !== 'undefined') {
+        if (typeof msg.voice.sensitivity !== "undefined") {
           params.sensitivity = msg.voice.sensitivity;
         }
-        if (typeof msg.voice.level !== 'undefined') {
+        if (typeof msg.voice.level !== "undefined") {
           params.level = msg.voice.level;
         }
-        if (typeof msg.voice.languageCode !== 'undefined') {
-          params.languageCode = msg.voice.languageCode.split('/');
+        if (typeof msg.voice.languageCode !== "undefined") {
+          params.languageCode = msg.voice.languageCode.split("/");
         }
-        if (typeof msg.voice.alternativeLanguageCodes !== 'undefined') {
-          params.alternativeLanguageCodes = msg.voice.alternativeLanguageCodes.split('/');
+        if (typeof msg.voice.alternativeLanguageCodes !== "undefined") {
+          params.alternativeLanguageCodes =
+            msg.voice.alternativeLanguageCodes.split("/");
         }
       }
       node.recording = true;
-      socket.emit('speech-to-text', {
-        ...params,
-        ...this.credential(),
-      }, (res) => {
-        if (!node.recording) return;
-        if (!node.isAlive()) return;
-        node.recording = false;
-        if (res == '[timeout]') {
-          msg.payload = 'timeout';
-          node.send(msg);
-        } else
-        if (res == '[canceled]') {
-          msg.payload = 'canceled';
-          node.send(msg);
-        } else
-        if (res == '[camera]') {
-          msg.payload = 'camera';
-          node.send(msg);
-        } else {
-          if (res.button) {
-            msg.payload = 'button';
-            msg.button = res;
-            delete res.button;
+      socket.emit(
+        "speech-to-text",
+        {
+          ...params,
+          ...this.credential(),
+        },
+        res => {
+          if (!node.recording) return;
+          if (!node.isAlive()) return;
+          node.recording = false;
+          if (res == "[timeout]") {
+            msg.payload = "timeout";
             node.send(msg);
-          } else
-          if (res.gamepad) {
-            msg.payload = 'gamepad';
-            msg.gamepad = res;
-            delete res.gamepad;
+          } else if (res == "[canceled]") {
+            msg.payload = "canceled";
             node.send(msg);
-          } else
-          if (res.speechRequest) {
-            msg.speechRequest = true;
-            msg.payload = res.payload;
-            msg.speechText = msg.payload;
-            msg.topicPriority = 0;
-            node.next(msg);
-          } else
-          if (typeof res === 'object') {
-            msg.languageCode = res.languageCode,
-            msg.confidence = res.confidence;
-            msg.payload = res.transcript;
-            msg.speechText = msg.payload;
-            msg.topicPriority = 0;
-            delete msg.speechRequest;
-            node.next(msg);
+          } else if (res == "[camera]") {
+            msg.payload = "camera";
+            node.send(msg);
           } else {
-            msg.payload = res;
-            msg.speechText = msg.payload;
-            msg.topicPriority = 0;
-            delete msg.speechRequest;
-            node.next(msg);
+            if (res.button) {
+              msg.payload = "button";
+              msg.button = res;
+              delete res.button;
+              node.send(msg);
+            } else if (res.gamepad) {
+              msg.payload = "gamepad";
+              msg.gamepad = res;
+              delete res.gamepad;
+              node.send(msg);
+            } else if (res.speechRequest) {
+              msg.speechRequest = true;
+              msg.payload = res.payload;
+              msg.speechText = msg.payload;
+              msg.topicPriority = 0;
+              node.next(msg);
+            } else if (typeof res === "object") {
+              (msg.languageCode = res.languageCode),
+                (msg.confidence = res.confidence);
+              msg.payload = res.transcript;
+              msg.speechText = msg.payload;
+              msg.topicPriority = 0;
+              delete msg.speechRequest;
+              node.next(msg);
+            } else {
+              msg.payload = res;
+              msg.speechText = msg.payload;
+              msg.topicPriority = 0;
+              delete msg.speechRequest;
+              node.next(msg);
+            }
           }
         }
-      });
+      );
     });
   }
-  DORA.registerType('speech-to-text', SpeechToText);
+  DORA.registerType("speech-to-text", SpeechToText);
 
   /*
    *
    *
    */
   function Translate(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
       let opts = options;
       if (isTemplated) {
         opts = utils.mustache.render(opts, msg);
       }
-      let host = 'localhost';
+      let host = "localhost";
       let port = 3090;
-      if (typeof msg.dora !== 'undefined') {
-        if (typeof msg.dora.host !== 'undefined') {
+      if (typeof msg.dora !== "undefined") {
+        if (typeof msg.dora.host !== "undefined") {
           host = msg.dora.host;
         }
-        if (typeof msg.dora.port !== 'undefined') {
+        if (typeof msg.dora.port !== "undefined") {
           port = msg.dora.port;
         }
       }
       const body = {
         text: msg.payload,
-      }
+      };
       if (opts) {
-        opts = opts.split('/');
+        opts = opts.split("/");
         if (opts.length > 0) {
-          body.source = 'ja';
+          body.source = "ja";
           body.target = opts[0];
           if (opts.length > 1) {
             body.source = opts[0];
@@ -925,25 +954,25 @@ module.exports = function(DORA, config) {
         }
       }
       const headers = {};
-      headers['Content-Type'] = 'application/json';
+      headers["Content-Type"] = "application/json";
       let response = await fetch(`http://${host}:${port}/google/translate`, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify(body),
-      })
+      });
       if (response.ok) {
         const data = await response.json();
-        const translation = data.join('');
+        const translation = data.join("");
         msg.translate = {
-          translation, 
+          translation,
           ...body,
-        }
+        };
         msg.payload = translation;
       }
       node.send(msg);
-    })
+    });
   }
-  DORA.registerType('translate', Translate);
+  DORA.registerType("translate", Translate);
 
   /*
    *
@@ -951,151 +980,164 @@ module.exports = function(DORA, config) {
    */
   function WaitEvent(node, options) {
     node.nextLabel(options);
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       const { socket } = node.flow.options;
       const params = {
         timeout: 0,
-        sensitivity: 'keep',
+        sensitivity: "keep",
       };
-      if (typeof msg.waitevent !== 'undefined'
-       && typeof msg.waitevent.timeout !== 'undefined') {
+      if (
+        typeof msg.waitevent !== "undefined" &&
+        typeof msg.waitevent.timeout !== "undefined"
+      ) {
         params.timeout = msg.waitevent.timeout;
       }
       params.recording = false;
       node.recording = true;
-      socket.emit('speech-to-text', {
-        ...params,
-        ...this.credential(),
-      }, (res) => {
-        if (!node.recording) return;
-        if (!node.isAlive()) return;
-        node.recording = false;
-        if (res == '[timeout]') {
-          msg.payload = 'timeout';
-          node.send(msg);
-        } else
-        if (res == '[canceled]') {
-          msg.payload = 'canceled';
-          node.send(msg);
-        } else
-        if (res == '[camera]') {
-          msg.payload = 'camera';
-          node.send(msg);
-        } else {
-          if (res.button) {
-            msg.payload = 'button';
-            msg.button = res;
-            delete res.button;
+      socket.emit(
+        "speech-to-text",
+        {
+          ...params,
+          ...this.credential(),
+        },
+        res => {
+          if (!node.recording) return;
+          if (!node.isAlive()) return;
+          node.recording = false;
+          if (res == "[timeout]") {
+            msg.payload = "timeout";
             node.send(msg);
-          } else
-          if (res.gamepad) {
-            msg.payload = 'gamepad';
-            msg.gamepad = res;
-            delete res.gamepad;
+          } else if (res == "[canceled]") {
+            msg.payload = "canceled";
             node.send(msg);
-          } else
-          if (res.speechRequest) {
-            msg.speechRequest = true;
-            msg.payload = res.payload;
-            msg.speechText = msg.payload;
-            msg.topicPriority = 0;
-            node.next(msg);
-          } else
-          if (typeof res === 'object') {
-            msg.languageCode = res.languageCode,
-            msg.confidence = res.confidence;
-            msg.payload = res.transcript;
-            msg.speechText = msg.payload;
-            msg.topicPriority = 0;
-            delete msg.speechRequest;
-            node.next(msg);
+          } else if (res == "[camera]") {
+            msg.payload = "camera";
+            node.send(msg);
           } else {
-            msg.payload = res;
-            msg.speechText = msg.payload;
-            msg.topicPriority = 0;
-            delete msg.speechRequest;
-            node.next(msg);
+            if (res.button) {
+              msg.payload = "button";
+              msg.button = res;
+              delete res.button;
+              node.send(msg);
+            } else if (res.gamepad) {
+              msg.payload = "gamepad";
+              msg.gamepad = res;
+              delete res.gamepad;
+              node.send(msg);
+            } else if (res.speechRequest) {
+              msg.speechRequest = true;
+              msg.payload = res.payload;
+              msg.speechText = msg.payload;
+              msg.topicPriority = 0;
+              node.next(msg);
+            } else if (typeof res === "object") {
+              (msg.languageCode = res.languageCode),
+                (msg.confidence = res.confidence);
+              msg.payload = res.transcript;
+              msg.speechText = msg.payload;
+              msg.topicPriority = 0;
+              delete msg.speechRequest;
+              node.next(msg);
+            } else {
+              msg.payload = res;
+              msg.speechText = msg.payload;
+              msg.topicPriority = 0;
+              delete msg.speechRequest;
+              node.next(msg);
+            }
           }
         }
-      });
+      );
     });
   }
-  DORA.registerType('wait-event', WaitEvent);
+  DORA.registerType("wait-event", WaitEvent);
 
   /*
    *
    *
    */
   function StopSpeech(node, options) {
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       const { socket } = node.flow.options;
-      socket.emit('stop-speech', {
-        ...this.credential(),
-      }, (res) => {
-        if (!node.isAlive()) return;
-        node.next(msg);
-      });
+      socket.emit(
+        "stop-speech",
+        {
+          ...this.credential(),
+        },
+        res => {
+          if (!node.isAlive()) return;
+          node.next(msg);
+        }
+      );
     });
   }
-  DORA.registerType('stop-speech', StopSpeech);
+  DORA.registerType("stop-speech", StopSpeech);
 
   /*
    *
    *
    */
   function JoinFlow(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       const { socket } = node.flow.options;
       var option = options;
       if (isTemplated) {
-          option = utils.mustache.render(option, msg);
+        option = utils.mustache.render(option, msg);
       }
-      socket.emit('stop-speech', {
-        ...this.credential(),
-        option,
-      }, (res) => {
-        if (!node.isAlive()) return;
-        node.join();
-        node.next(msg);
-      });
+      socket.emit(
+        "stop-speech",
+        {
+          ...this.credential(),
+          option,
+        },
+        res => {
+          if (!node.isAlive()) return;
+          node.join();
+          node.next(msg);
+        }
+      );
     });
   }
-  DORA.registerType('join-flow', JoinFlow);
+  DORA.registerType("join-flow", JoinFlow);
 
   /*
    *
    *
    */
   function CoreChat(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       const { socket } = node.flow.options;
       var message = options || msg.payload;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
-      socket.emit('docomo-chat', {
-        message,
-        silence: true,
-        ...this.credential(),
-      }, (res) => {
-        if (!node.isAlive()) return;
-        msg.payload = res;
-        node.next(msg);
-      });
+      socket.emit(
+        "docomo-chat",
+        {
+          message,
+          silence: true,
+          ...this.credential(),
+        },
+        res => {
+          if (!node.isAlive()) return;
+          msg.payload = res;
+          node.next(msg);
+        }
+      );
     });
   }
-  DORA.registerType('chat', CoreChat);
-  DORA.registerType('docomo-chat', CoreChat);
+  DORA.registerType("chat", CoreChat);
+  DORA.registerType("docomo-chat", CoreChat);
 
   /*
    *
    *
    */
   function CoreDoraChat(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       const { socket } = node.flow.options;
       var action = options;
       if (isTemplated) {
@@ -1103,224 +1145,243 @@ module.exports = function(DORA, config) {
       }
       var message = msg.payload;
       const params = {
-        sheetId: utils.getParam(msg.chat, 'sheetId', ''),
-        sheetName: utils.getParam(msg.chat, 'sheetName', ''),
-        download: utils.getParam(msg.chat, 'download', 'auto'),
-        useMecab: utils.getParam(msg.chat, 'useMecab', 'true'),
+        sheetId: utils.getParam(msg.chat, "sheetId", ""),
+        sheetName: utils.getParam(msg.chat, "sheetName", ""),
+        download: utils.getParam(msg.chat, "download", "auto"),
+        useMecab: utils.getParam(msg.chat, "useMecab", "true"),
         action,
       };
-      socket.emit('dora-chat', {
-        message,
-        ...params,
-        ...this.credential(),
-      }, (res) => {
-        if (!node.isAlive()) return;
-        msg.payload = res.answer;
-        if (!msg.chat) msg.chat = {};
-        msg.chat.result = res;
-        node.next(msg);
-      });
+      socket.emit(
+        "dora-chat",
+        {
+          message,
+          ...params,
+          ...this.credential(),
+        },
+        res => {
+          if (!node.isAlive()) return;
+          msg.payload = res.answer;
+          if (!msg.chat) msg.chat = {};
+          msg.chat.result = res;
+          node.next(msg);
+        }
+      );
     });
   }
-  DORA.registerType('dora-chat', CoreDoraChat);
+  DORA.registerType("dora-chat", CoreDoraChat);
 
   /*
    *
    *
    */
   function CoreSwitch(node, options) {
-    const params = options.split('/');
+    const params = options.split("/");
     var string = params[0];
-    var isTemplated = (string||"").indexOf("{{") != -1;
+    var isTemplated = (string || "").indexOf("{{") != -1;
     if (params.length > 1) {
-       node.nextLabel(params.slice(1).join('/'))
+      node.nextLabel(params.slice(1).join("/"));
     } else {
-       node.nextLabel(string)
+      node.nextLabel(string);
     }
-    node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+    node.on("input", function (msg) {
+      if (typeof msg.quiz === "undefined") msg.quiz = utils.quizObject();
       let message = string;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
-      if (typeof msg.payload === 'undefined') msg.payload = '';
-      if (message.trim().toLowerCase() == msg.payload.toString().trim().toLowerCase()) {
+      if (typeof msg.payload === "undefined") msg.payload = "";
+      if (
+        message.trim().toLowerCase() ==
+        msg.payload.toString().trim().toLowerCase()
+      ) {
         node.jump(msg);
       } else {
         node.next(msg);
       }
     });
   }
-  DORA.registerType('switch', CoreSwitch);
+  DORA.registerType("switch", CoreSwitch);
 
   /*
    *
    *
    */
   function CoreCheck(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
+      if (typeof msg.quiz === "undefined") msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
-      const params = message.split('/');
+      const params = message.split("/");
       const n = [];
-      msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
-      params.forEach( message => {
+      msg.topicPriority =
+        typeof msg.topicPriority !== "undefined" ? msg.topicPriority : 0;
+      params.forEach(message => {
         msg.topicPriority += utils.nGramCheck(msg.payload, message);
-      })
+      });
       node.send(msg);
     });
   }
-  DORA.registerType('check', CoreCheck);
+  DORA.registerType("check", CoreCheck);
 
   /*
    *
    *
    */
   function CoreMecab(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       let payload = options;
-      if (payload === '' || payload === null) {
+      if (payload === "" || payload === null) {
         payload = msg.payload;
       } else {
         if (isTemplated) {
-            payload = utils.mustache.render(payload, msg);
+          payload = utils.mustache.render(payload, msg);
         }
       }
       mecab.parse(payload, (err, result) => {
         if (err) node.err(err);
-        if (!('mecab' in msg)) {
+        if (!("mecab" in msg)) {
           msg.mecab = {};
         }
-        msg.mecab.result = result.map( v => {
-          return v[0];
-        }).join(' ');
+        msg.mecab.result = result
+          .map(v => {
+            return v[0];
+          })
+          .join(" ");
         node.send(msg);
       });
     });
   }
-  DORA.registerType('mecab', CoreMecab);
+  DORA.registerType("mecab", CoreMecab);
 
   /*
    *
    *
    */
   function CoreMecabCheck(node, options) {
-    const string = options.split('/');
-    var isTemplated = (string||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
-      msg.topicPriority = (typeof msg.topicPriority !== 'undefined') ? msg.topicPriority : 0;
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+    const string = options.split("/");
+    var isTemplated = (string || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
+      msg.topicPriority =
+        typeof msg.topicPriority !== "undefined" ? msg.topicPriority : 0;
+      if (typeof msg.quiz === "undefined") msg.quiz = utils.quizObject();
       const n = [];
       let message = string;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
       if (node._message == null || node._message !== message) {
         node._message = message;
-        mecab.compare(node._message, msg.payload, (err, { point, sentenses, length, }) => {
-          if (err) node.err(new Error('比較エラー'));
-          msg.topicPriority += point;
-          node._data = sentenses;
-          node.send(msg);
-        })
+        mecab.compare(
+          node._message,
+          msg.payload,
+          (err, { point, sentenses, length }) => {
+            if (err) node.err(new Error("比較エラー"));
+            msg.topicPriority += point;
+            node._data = sentenses;
+            node.send(msg);
+          }
+        );
       } else {
-        mecab.compare(node._data, msg.payload, (err, { point, sentenses, length, }) => {
-          if (err) node.err(new Error('比較エラー'));
-          msg.topicPriority += point;
-          node.send(msg);
-        })
+        mecab.compare(
+          node._data,
+          msg.payload,
+          (err, { point, sentenses, length }) => {
+            if (err) node.err(new Error("比較エラー"));
+            msg.topicPriority += point;
+            node.send(msg);
+          }
+        );
       }
     });
   }
-  DORA.registerType('mecabCheck', CoreMecabCheck);
-  DORA.registerType('mecab.check', CoreMecabCheck);
+  DORA.registerType("mecabCheck", CoreMecabCheck);
+  DORA.registerType("mecab.check", CoreMecabCheck);
 
   /*
    *
    *
    */
   function CorePayload(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       var message = options || msg.payload;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
       msg.payload = message;
       node.send(msg);
     });
   }
-  DORA.registerType('payload', CorePayload);
+  DORA.registerType("payload", CorePayload);
 
   /*
    *
    *
    */
   function CoreCall(node, options) {
-    node.options = options
-    node.on("input", async function(msg) {
-      const opt = {}
-      Object.keys(node.flow.options).forEach( key => {
+    node.options = options;
+    node.on("input", async function (msg) {
+      const opt = {};
+      Object.keys(node.flow.options).forEach(key => {
         opt[key] = node.flow.options[key];
-      })
+      });
       opt.range = {
         start: 0,
-      }
+      };
       const dora = await node.dora();
       dora.play(msg, opt, (err, msg) => {
-        if (err) node.err(new Error('再生エラー。'));
+        if (err) node.err(new Error("再生エラー。"));
         if (!node.isAlive()) return;
         node.send(msg);
       });
     });
   }
-  DORA.registerType('call', CoreCall);
+  DORA.registerType("call", CoreCall);
 
   /*
    *
    *
    */
   function CoreExec(node, options) {
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       var script = options;
       //eval(script);
       node.send(msg);
     });
   }
-  DORA.registerType('exec', CoreExec);
+  DORA.registerType("exec", CoreExec);
 
   /*
    *
    *
    */
   function CoreEval(node, options) {
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       node.flow.engine.eval(node, msg, {}, (err, msg) => {
         node.send(msg);
       });
-    })
+    });
   }
-  DORA.registerType('eval', CoreEval);
+  DORA.registerType("eval", CoreEval);
 
   /*
    *
    *
    */
   function QuizSelect(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
+      if (typeof msg.quiz === "undefined") msg.quiz = utils.quizObject();
       let message = options;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
       msg.quiz.pages.push({
-        action: 'quiz',
+        action: "quiz",
         question: message,
         choices: [],
         answers: [],
@@ -1329,106 +1390,106 @@ module.exports = function(DORA, config) {
       node.send(msg);
     });
   }
-  DORA.registerType('select', QuizSelect);
+  DORA.registerType("select", QuizSelect);
 
   /*
    *
    *
    */
   function QuizSelectLayout(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
-      if (typeof msg.quiz === 'undefined') msg.quiz = utils.quizObject();
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
+      if (typeof msg.quiz === "undefined") msg.quiz = utils.quizObject();
       let layout = options;
       if (isTemplated) {
-          layout = utils.mustache.render(layout, msg);
+        layout = utils.mustache.render(layout, msg);
       }
       if (msg.quiz.pages.length > 0) {
-        msg.quiz.pages[msg.quiz.pages.length-1].layout = layout;
+        msg.quiz.pages[msg.quiz.pages.length - 1].layout = layout;
       }
       node.send(msg);
     });
   }
-  DORA.registerType('select.layout', QuizSelectLayout);
+  DORA.registerType("select.layout", QuizSelectLayout);
 
   /**
    *
    *
    */
   function QuizOptionCategory(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       QuizCategory(node, msg, options, isTemplated);
     });
   }
-  DORA.registerType('category', QuizOptionCategory);
+  DORA.registerType("category", QuizOptionCategory);
 
   /*
    *
    *
    */
   function QuizOptionOK(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       QuizOK(node, msg, options, isTemplated);
     });
   }
-  DORA.registerType('ok', QuizOptionOK);
+  DORA.registerType("ok", QuizOptionOK);
 
   /*
    *
    *
    */
   function QuizOptionOKImage(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       QuizOKImage(node, msg, options, isTemplated);
     });
   }
-  DORA.registerType('ok.image', QuizOptionOKImage);
+  DORA.registerType("ok.image", QuizOptionOKImage);
 
   /*
    *
    *
    */
   function QuizOptionNG(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       QuizNG(node, msg, options, isTemplated);
     });
   }
-  DORA.registerType('ng', QuizOptionNG);
+  DORA.registerType("ng", QuizOptionNG);
 
   /*
    *
    *
    */
   function QuizOptionNGImage(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", function (msg) {
       QuizNGImage(node, msg, options, isTemplated);
     });
   }
-  DORA.registerType('ng.image', QuizOptionNGImage);
+  DORA.registerType("ng.image", QuizOptionNGImage);
 
   /*
    *
    *
    */
   function QuizRun(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
       if (!node.isAlive()) return;
       let nextscript = options || msg.payload;
       if (isTemplated) {
-          nextscript = utils.mustache.render(nextscript, msg);
+        nextscript = utils.mustache.render(nextscript, msg);
       }
       nextscript = nextscript.trim();
       //console.log(`nextscript ${nextscript}`);
-      if (nextscript.indexOf('http') == 0) {
+      if (nextscript.indexOf("http") == 0) {
         const res = await node.flow.request({
-          type: 'scenario',
-          action: 'load',
+          type: "scenario",
+          action: "load",
           uri: nextscript,
           username: msg.username,
         });
@@ -1440,45 +1501,48 @@ module.exports = function(DORA, config) {
       node.end(null, msg);
     });
   }
-  DORA.registerType('run', QuizRun);
+  DORA.registerType("run", QuizRun);
 
   /*
    * Google Sheet に値を書き込む
    *
    */
   function AppendToGoogleSheet(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
       try {
         let message = options || msg.payload;
         if (isTemplated) {
-            message = utils.mustache.render(message, msg);
+          message = utils.mustache.render(message, msg);
         }
         if (message) {
-          const payload = message.split('/');
+          const payload = message.split("/");
           const body = {
             payload,
             ...this.credential(),
-          }
-          if (typeof msg.googleSheetId !== 'undefined') {
-            let host = 'localhost';
+          };
+          if (typeof msg.googleSheetId !== "undefined") {
+            let host = "localhost";
             let port = 3090;
-            if (typeof msg.dora !== 'undefined') {
-              if (typeof msg.dora.host !== 'undefined') {
+            if (typeof msg.dora !== "undefined") {
+              if (typeof msg.dora.host !== "undefined") {
                 host = msg.dora.host;
               }
-              if (typeof msg.dora.port !== 'undefined') {
+              if (typeof msg.dora.port !== "undefined") {
                 port = msg.dora.port;
               }
             }
             body.sheetId = msg.googleSheetId;
             const headers = {};
-            headers['Content-Type'] = 'application/json';
-            let response = await fetch(`http://${host}:${port}/google/append-to-sheet`, {
-              method: 'POST',
-              headers,
-              body: JSON.stringify(body),
-            })
+            headers["Content-Type"] = "application/json";
+            let response = await fetch(
+              `http://${host}:${port}/google/append-to-sheet`,
+              {
+                method: "POST",
+                headers,
+                body: JSON.stringify(body),
+              }
+            );
             if (response.ok) {
               const data = await response.text();
               //レスポンスは処理しない
@@ -1489,178 +1553,182 @@ module.exports = function(DORA, config) {
         } else {
           //エラーは処理しない
         }
-      } catch(err) {
+      } catch (err) {
         //エラーは処理しない
       }
       node.next(msg);
     });
   }
-  DORA.registerType('append-to-google-sheet', AppendToGoogleSheet);
+  DORA.registerType("append-to-google-sheet", AppendToGoogleSheet);
 
   /*
    * 値を変換する
    *
    */
   function Convert(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
       let message = options || msg.payload;
       if (isTemplated) {
-          message = utils.mustache.render(message, msg);
+        message = utils.mustache.render(message, msg);
       }
-      if (typeof message !== 'undefined') {
-        let p = message.toString().split('/');
+      if (typeof message !== "undefined") {
+        let p = message.toString().split("/");
         let command = p.shift();
-        message = p.join('/');
-        if (command === 'encodeURIComponent') {
+        message = p.join("/");
+        if (command === "encodeURIComponent") {
           msg.payload = encodeURIComponent(message);
         }
-        if (command === 'decodeURIComponent') {
+        if (command === "decodeURIComponent") {
           msg.payload = decodeURIComponent(message);
         }
       }
       node.next(msg);
-    })
+    });
   }
-  DORA.registerType('convert', Convert);
+  DORA.registerType("convert", Convert);
 
   /*
    * 電源を切る
    *
    */
   function PowerOff(node, options) {
-    node.on("input", async function(msg) {
+    node.on("input", async function (msg) {
       await node.flow.request({
-        type: 'poweroff',
+        type: "poweroff",
       });
       node.next(msg);
-    })
+    });
   }
-  DORA.registerType('poweroff', PowerOff);
+  DORA.registerType("poweroff", PowerOff);
 
   /*
    * 再起動
    *
    */
   function Reboot(node, options) {
-    node.on("input", async function(msg) {
+    node.on("input", async function (msg) {
       await node.flow.request({
-        type: 'reboot',
+        type: "reboot",
       });
       node.next(msg);
-    })
+    });
   }
-  DORA.registerType('reboot', Reboot);
+  DORA.registerType("reboot", Reboot);
 
   /*
    * 設定値のセーブ
    *
    */
   function Save(node, options) {
-    const p = (options) ? options.split('/') : [];
-    let field = (p.length > 0) ? p[0].split('.') : [];
+    const p = options ? options.split("/") : [];
+    let field = p.length > 0 ? p[0].split(".") : [];
     if (p.length < 1) {
-      field = ['defaults'];
+      field = ["defaults"];
     }
-    node.on("input", async function(msg) {
+    node.on("input", async function (msg) {
       let t = msg;
-      field.forEach( f => {
-        if (f !== '') {
-          if (typeof t !== 'undefined') {
+      field.forEach(f => {
+        if (f !== "") {
+          if (typeof t !== "undefined") {
             t = t[f];
           }
         }
       });
-      if (typeof t !== 'undefined') {
+      if (typeof t !== "undefined") {
         await node.flow.request({
-          type: 'save',
-          action: 'defaults',
+          type: "save",
+          action: "defaults",
           data: t,
         });
       }
       node.next(msg);
-    })
+    });
   }
-  DORA.registerType('save', Save);
+  DORA.registerType("save", Save);
 
   /*
    * 設定値のロード
    *
    */
   function Load(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    const p = (options) ? options.split('/') : [];
-    let field = (p.length > 0) ? p[0].split('.').filter( v => v !== '' ) : [];
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    const p = options ? options.split("/") : [];
+    let field = p.length > 0 ? p[0].split(".").filter(v => v !== "") : [];
     if (p.length < 1) {
-      field = ['defaults'];
+      field = ["defaults"];
     }
-    node.on("input", async function(msg) {
+    node.on("input", async function (msg) {
       const response = await node.flow.request({
-        type: 'load',
-        action: 'defaults',
+        type: "load",
+        action: "defaults",
       });
       let t = msg;
       let key = null;
       let v = msg;
-      field.forEach( f => {
-        if (typeof t === 'undefined' || typeof t !== 'object') {
+      field.forEach(f => {
+        if (typeof t === "undefined" || typeof t !== "object") {
           v[key] = {};
           t = v[key];
         }
         key = f;
-        v = t
+        v = t;
         t = t[f];
       });
-      if (typeof v !== 'undefined' && typeof key !== 'undefined') {
-        v[key]= response.data;
+      if (typeof v !== "undefined" && typeof key !== "undefined") {
+        v[key] = response.data;
       }
       if (msg.labels) {
-        Object.keys(msg.labels).forEach( key => {
+        Object.keys(msg.labels).forEach(key => {
           const v = msg.labels[key];
           this.flow.labels[key] = v;
         });
       }
       node.next(msg);
-    })
+    });
   }
-  DORA.registerType('load', Load);
+  DORA.registerType("load", Load);
 
   /**
    *
    *
    */
   function QuizSlideFunc(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
       await QuizSlide(node, msg, options, isTemplated);
     });
   }
-  DORA.registerType('slide', QuizSlideFunc);
+  DORA.registerType("slide", QuizSlideFunc);
 
   /**
    *
    *
    */
   function CommmandFunc(node, options) {
-    var isTemplated = (options||"").indexOf("{{") != -1;
-    node.on("input", async function(msg) {
+    var isTemplated = (options || "").indexOf("{{") != -1;
+    node.on("input", async function (msg) {
       const { socket } = node.flow.options;
       let command = options || msg.payload;
       if (isTemplated) {
-          command = utils.mustache.render(command, msg);
+        command = utils.mustache.render(command, msg);
       }
-      if (typeof command !== 'undefined') {
-        socket.emit('command', {
-          command,
-          ...this.credential(),
-        }, (res) => {
-          if (!node.isAlive()) return;
-          node.next(msg);
-        });
+      if (typeof command !== "undefined") {
+        socket.emit(
+          "command",
+          {
+            command,
+            ...this.credential(),
+          },
+          res => {
+            if (!node.isAlive()) return;
+            node.next(msg);
+          }
+        );
       } else {
         node.next(msg);
       }
     });
   }
-  DORA.registerType('command', CommmandFunc);
-}
+  DORA.registerType("command", CommmandFunc);
+};

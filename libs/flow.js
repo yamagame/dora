@@ -1,7 +1,7 @@
-const utils = require('./utils');
+const utils = require("./utils");
 
 class Flow {
-  constructor(engine, config){
+  constructor(engine, config) {
     this.engine = engine;
     this.runnode = 0;
     this.running = false;
@@ -20,19 +20,19 @@ class Flow {
   exec() {
     const t = [];
     const m = [];
-    for (var i=0;i<this.execNodes.length;i++) {
+    for (var i = 0; i < this.execNodes.length; i++) {
       t.push(this.execNodes[i]);
       m.push(utils.clone(this.execNodes[i].msg));
     }
     this.execNodes = [];
     setTimeout(() => {
-      for (var i=0;i<t.length;i++) {
+      for (var i = 0; i < t.length; i++) {
         if (t[i].node.isAlive()) {
           // const name = t[i].node.name;
           // if (name !== 'text-to-speech' && name !== 'delay') {
           //   delete m[i].silence;
           // }
-          t[i].node.emit('input', m[i], m[i].callstack);
+          t[i].node.emit("input", m[i], m[i].callstack);
         }
       }
     }, 1);
@@ -59,14 +59,14 @@ class Flow {
   }
 
   up() {
-    this.runnode ++;
+    this.runnode++;
   }
 
   down() {
-    this.runnode --;
+    this.runnode--;
   }
 
-  nextLabel(node, label, index=0) {
+  nextLabel(node, label, index = 0) {
     return this.engine.nextLabel(node, label, index);
   }
 
@@ -84,7 +84,7 @@ class Flow {
     }
     return this.running;
   }
-  
+
   credential() {
     if (this.parentFlow) {
       return this.parentFlow.credential();

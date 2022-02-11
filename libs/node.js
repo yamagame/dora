@@ -1,14 +1,14 @@
-const Emitter = require('component-emitter');
-const utils = require('./utils');
+const Emitter = require("component-emitter");
+const utils = require("./utils");
 
 class Node extends Emitter {
-  constructor(flow){
+  constructor(flow) {
     super();
     this.flow = flow;
     this.wires = [];
     this._act = 0;
     this.line = 0;
-    this.reason = '';
+    this.reason = "";
   }
 
   global() {
@@ -19,8 +19,7 @@ class Node extends Emitter {
     return this.flow.credential();
   }
 
-  status(status) {
-  }
+  status(status) {}
 
   send(msg) {
     if (!this.isAlive()) return;
@@ -36,13 +35,15 @@ class Node extends Emitter {
     if (this.wires.length <= 1) {
       const m = utils.clone(msg);
       //m.topic = this.wires[i].labelName;
-      m.topicPriority = (typeof m.topicPriority !== 'undefined') ? m.topicPriority : 0;
+      m.topicPriority =
+        typeof m.topicPriority !== "undefined" ? m.topicPriority : 0;
       w.push(m);
     } else {
-      for (var i=0;i<this.wires.length-1;i++) {
+      for (var i = 0; i < this.wires.length - 1; i++) {
         const m = utils.clone(msg);
         m.topic = this.wires[i].labelName;
-        m.topicPriority = (typeof m.topicPriority !== 'undefined') ? m.topicPriority : 0;
+        m.topicPriority =
+          typeof m.topicPriority !== "undefined" ? m.topicPriority : 0;
         w.push(m);
       }
       w.push(null);
@@ -52,7 +53,7 @@ class Node extends Emitter {
 
   jump(msg) {
     const w = [];
-    for (var i=0;i<this.wires.length-1;i++) {
+    for (var i = 0; i < this.wires.length - 1; i++) {
       w.push(msg);
     }
     w.push(null);
@@ -61,7 +62,7 @@ class Node extends Emitter {
 
   next(msg) {
     const w = [];
-    for (var i=0;i<this.wires.length-1;i++) {
+    for (var i = 0; i < this.wires.length - 1; i++) {
       w.push(null);
     }
     w.push(msg);
@@ -73,11 +74,11 @@ class Node extends Emitter {
   }
 
   up() {
-    this._act ++;
+    this._act++;
   }
 
   down() {
-    this._act --;
+    this._act--;
   }
 
   stop() {
@@ -85,10 +86,10 @@ class Node extends Emitter {
   }
 
   isAlive() {
-    return (this._act != 0);
+    return this._act != 0;
   }
 
-  nextLabel(label, index=0) {
+  nextLabel(label, index = 0) {
     return this.flow.nextLabel(this, label, index);
   }
 
