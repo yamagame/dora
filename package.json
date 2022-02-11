@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
-    "test-test": "mocha -g $TEST"
+    "sample": "node index.js http://localhost:3090 ./test/samples/sample.dora",
+    "dev-server": "node dev-server.js",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -17,10 +18,12 @@
     "mecab-async": "^0.1.2",
     "mustache": "^2.3.0",
     "node-fetch": "^2.1.2",
-    "socket.io-client": "^2.1.0",
+    "socket.io-client": "^4.4.1",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "mocha": "^8.3.2"
+    "jest": "^27.5.1",
+    "express": "^4.17.2",
+    "socket.io": "^4.4.1"
   }
 }

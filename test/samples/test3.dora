@@ -1,1 +1,9 @@
-Hello Dora 3
+/.payload/hello
+:LOOP
+/if/hello/こんにちは/ハロー/ボンジュール/:TEST
+/if/bye/さようなら/じゃあ、また/ごきげんよう
+/end
+
+:TEST
+/.payload/bye
+/goto/:LOOP

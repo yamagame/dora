@@ -1,4 +1,4 @@
-const MeCab = new require("mecab-async");
+const MeCab = require("mecab-async");
 MeCab.command = "mecab";
 const mecab = new MeCab();
 

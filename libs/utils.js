@@ -109,6 +109,15 @@ function logMessage(node, socket, message) {
   });
 }
 
+function match(msg, message) {
+  return (
+    msg.payload
+      .toString()
+      .toLowerCase()
+      .indexOf(message.trim().toLowerCase()) >= 0
+  );
+}
+
 module.exports = {
   timeout,
   generateId,
@@ -120,6 +129,7 @@ module.exports = {
   clone: _clone,
   getParam,
   logMessage,
+  match,
 };
 
 if (require.main === module) {

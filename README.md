@@ -22,9 +22,23 @@ $ node index.js [DoraEngineのホスト] [実行したいスクリプト]
 $ node index.js http://localhost:3090 ./tests/samples/sample.dora
 ```
 
+## ダミーサーバー
+
+以下の手順で Dora Engine の代わりのダミーサーバーを利用して発話させることができます。ダミーサーバーは mac 用です。
+
+```
+$ npm run dev-server
+```
+
+ダミーサーバを起動した後、以下のコマンドで発話のサンプルを実行できます。
+
+```
+$ npm run sample
+```
+
 ## 言語仕様
 
-特殊行以外はロボットが読み上げる文章です。空行は1秒のウエイトとして機能します。
+特殊行以外はロボットが読み上げる文章です。空行は 1 秒のウエイトとして機能します。
 
 下記はスライドをめくりながら解説するスクリプトの例です。
 
@@ -48,7 +62,7 @@ $ node index.js http://localhost:3090 ./tests/samples/sample.dora
 
 [https://github.com/yamagame/dora-script-sample](https://github.com/yamagame/dora-script-sample)
 
-スクリプトの詳細はdocフォルダを参照してください。
+スクリプトの詳細は doc フォルダを参照してください。
 
 [DoraScript Language Specification](./doc/README.md)
 
@@ -60,7 +74,7 @@ $ node index.js http://localhost:3090 ./tests/samples/sample.dora
 //ここはコメント
 ```
 
-/* ---- */ でコメントすることもできます。
+/_ ---- _/ でコメントすることもできます。
 
 ### コマンド
 
