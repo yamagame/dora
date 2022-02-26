@@ -1,7 +1,7 @@
 const { spawn } = require("child_process");
 const express = require("express");
 const app = express();
-const port = 3090;
+const port = process.env.PORT || 3090;
 
 app.use((req, res, next) => {
   // console.log(req);
@@ -16,6 +16,18 @@ app.use(express.text());
 app.post("/command", (req, res) => {
   console.error("#command", req.body);
   res.send({});
+});
+
+app.post("/talk", (req, res) => {
+  console.log(req.body);
+  const playone = spawn(`/usr/bin/say`, [
+    "-v",
+    req.body.voice || "kyoko",
+    req.body.message,
+  ]);
+  playone.on("close", function () {
+    res.sendStatus(200);
+  });
 });
 
 app.get("/", (req, res) => {
