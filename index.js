@@ -343,7 +343,7 @@ class Dora {
     }
   }
 
-  run(flow) {}
+  run(flow) { }
 
   err(err) {
     this.stop();

@@ -152,11 +152,11 @@ module.exports = function (DORA, config) {
           closeButton: msg.quiz.closeButton ? msg.quiz.closeButton : false,
           links: msg.quiz.message
             ? [
-                {
-                  title: msg.quiz.message.link,
-                  url: msg.quiz.message.url,
-                },
-              ]
+              {
+                title: msg.quiz.message.link,
+                url: msg.quiz.message.url,
+              },
+            ]
             : null,
           name: "_quiz_master_",
         }
@@ -306,8 +306,8 @@ module.exports = function (DORA, config) {
       msg.quiz.quizId = message
         ? message
         : msg.quiz.quizId
-        ? msg.quiz.quizId
-        : msg.quiz.title;
+          ? msg.quiz.quizId
+          : msg.quiz.title;
       node.send(msg);
     });
   }
@@ -740,7 +740,7 @@ module.exports = function (DORA, config) {
       if (isTemplated) {
         option = utils.mustache.render(option, msg);
       }
-      const payload = await node.flow.request({
+      const params = {
         type: "quiz",
         action: "quiz-init",
         time: msg.quiz.timeLimit,
@@ -749,7 +749,8 @@ module.exports = function (DORA, config) {
         quizId: msg.quiz.quizId,
         showSum: false,
         options: option.split("/"),
-      });
+      }
+      const payload = await node.flow.request(params);
       msg.showSum = false;
       // console.log(payload);
       msg.quiz.startTime = payload;
@@ -800,14 +801,18 @@ module.exports = function (DORA, config) {
    */
   function QuizQuizPage(node, options) {
     node.on("input", function (msg) {
-      if (typeof msg.quiz === "undefined") msg.quiz = utils.quizObject();
-      msg.quiz.pages.push({
-        action: "quiz",
-        question: msg.payload.quiz.question,
-        choices: msg.payload.quiz.choices,
-        answers: msg.payload.quiz.answers,
-        selects: [],
-      });
+      if (msg.payload && msg.payload.quiz) msg.quiz = utils.quizObject();
+      if (!msg.payload || msg.payload.quiz === null) {
+        node.err(new Error("クイズデータエラー。"));
+      } else {
+        msg.quiz.pages.push({
+          action: "quiz",
+          question: msg.payload.quiz.question,
+          choices: msg.payload.quiz.choices,
+          answers: msg.payload.quiz.answers,
+          selects: [],
+        });
+      }
       node.send(msg);
     });
   }

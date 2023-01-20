@@ -76,14 +76,17 @@ const nGramCheck = function (str1, str2) {
     if (str1.indexOf(str2) >= 0) n1++;
     if (str2.indexOf(str1) >= 0) n1++;
     return n1 + n2 + n3;
-  } catch (err) {}
+  } catch (err) { }
   return 0;
 };
 
 const _clone = obj => {
-  if (typeof obj === "undefined") return null;
+  if (typeof obj === "undefined" || obj === null) return null;
   const callstack = obj.callstack;
   delete obj.callstack;
+  if (obj.quiz && obj.quiz.startTime) {
+    delete obj.quiz.startTime.request;
+  }
   const ret = clone(obj);
   obj.callstack = callstack;
   if (callstack) {
