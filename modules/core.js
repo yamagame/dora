@@ -899,6 +899,9 @@ module.exports = function (DORA, config) {
           } else if (res == "[canceled]") {
             msg.payload = "canceled";
             node.send(msg);
+          } else if (res == "[error]") {
+            msg.payload = "error";
+            node.send(msg);
           } else if (res == "[camera]") {
             msg.payload = "camera";
             node.send(msg);
@@ -1032,6 +1035,9 @@ module.exports = function (DORA, config) {
             node.send(msg);
           } else if (res == "[canceled]") {
             msg.payload = "canceled";
+            node.send(msg);
+          } else if (res == "[error]") {
+            msg.payload = "error";
             node.send(msg);
           } else if (res == "[camera]") {
             msg.payload = "camera";
